@@ -1,0 +1,20 @@
+{
+  "name": "time-freeze-video-maker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/3dify/time-freeze-video-maker.git"
+  },
+  "author": "Paul Hayes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/3dify/time-freeze-video-maker/issues"
+  },
+  "homepage": "https://github.com/3dify/time-freeze-video-maker"
+}
