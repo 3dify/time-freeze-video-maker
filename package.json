@@ -16,5 +16,10 @@
   "bugs": {
     "url": "https://github.com/3dify/time-freeze-video-maker/issues"
   },
-  "homepage": "https://github.com/3dify/time-freeze-video-maker"
+  "homepage": "https://github.com/3dify/time-freeze-video-maker",
+  "dependencies": {
+    "lodash": "^3.10.1",
+    "watch": "^0.16.0",
+    "youtube": "^0.1.0"
+  }
 }
