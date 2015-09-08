@@ -4,6 +4,7 @@ module.exports = {
 	'framerate':18,
 	'width':1620,
 	'height':1080,
+	'loop':8,
 	'bitrate':'8000k',
 	'ffmpegBinary':'ffmpeg',
 	'tmpPath':'/tmp'

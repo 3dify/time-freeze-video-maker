@@ -64,12 +64,35 @@ module.exports = function(config){
 			parentDir+".mp4"
 		];
 		var ffmpegCmd = config.ffmpegBinary;
-		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs);
+		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs, { stdio : 'inherit'});
 
 		if(child.status>0){
 			endpoints.exitWithError(child.stderr.toString());
 		}
 
+	}
+
+	var upload = function(){
+		var video = youtube
+			.createUpload('/path/to/my/video.webm')
+			.user('paul hayes')
+			.source('LearnBoost')
+			.password(config.password)
+			.key(config.youTube.authKey)
+			.title('Testing')
+			.description('Some test stuff')
+			.category('Education')
+			.upload(onUploadComplete);
+	}
+
+	var onUploadComplete = function(err, res){
+		if (err) throw err;
+		console.log('done');
+		console.log(res.id);
+		console.log(res.url);
+		console.log(res.embed());
+		console.log(res.embed(320, 320));
+		console.log(util.inspect(res, false, 15, true));
 	}
 
 	var resolveDirectory = function(dir){
