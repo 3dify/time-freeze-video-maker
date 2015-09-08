@@ -8,6 +8,7 @@
 * Upload to youTube
 * Generate QR Code for youTube url
 * Print QR Code on thermal printer
+* Integrate stablization code
 
 ## Complete
 
