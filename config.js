@@ -1,5 +1,5 @@
 module.exports = {
-	'privateConfig':'./.config',
+	'privateConfig':'./.config.js',
 	'numCameras':10,
 	'framerate':18,
 	'width':1620,

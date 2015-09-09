@@ -2,15 +2,31 @@ var path = require('path');
 var fs = require('fs');
 var lodash = require('lodash');
 var watcher = require('./watcher.js');
+var youtube = require('youtube');
 var child_process = require('child_process');
-var ImageSequence = require('./ImageSequence.js');
+var ImageSequence = require('./ImageSequence');
+var OAuthHelper = require('./OAuthHelper');
+var google = require('googleapis');
+
 
 module.exports = function(config){
 
 	var endpoints = {};
 	var currentSubdirs;
 	var watchDir;
+	var automaticUpload = true;
 
+	OAuthHelper.options({
+		scope:['https://www.googleapis.com/auth/youtube',
+	    		'https://www.googleapis.com/auth/youtube.force-ssl',
+	    		'https://www.googleapis.com/auth/youtube.upload'
+	    ]});
+
+	OAuthHelper.options({
+		accessToken:config.youTube.accessToken,
+		refreshToken:config.youTube.refreshToken
+	});
+	
 	endpoints.watch = function(dir){
 		watchDir = dir = resolveDirectory(dir);
 		watcher( dir, onDirChanged )
@@ -31,6 +47,58 @@ module.exports = function(config){
 		process.exit(1);
 	}
 
+	endpoints.automaticUpload = function(enabled){
+		automaticUpload = enabled;
+	}
+
+	endpoints.upload = function(outputFile){
+		/*
+		var video = youtube
+			.createUpload(outputFile)
+			.user(config.youTube.user)
+			.source(config.youTube.source)
+			.password(config.youTube.password)
+			.key(config.youTube.authKey)
+			.title('Testing')
+			.description('Some test stuff')
+			//.category('Education')
+			.upload(onUploadComplete);
+			*/
+
+			OAuthHelper.authenticate( config, onAuthComplete.bind(null,outputFile) );
+
+			
+	}
+
+	var onAuthComplete = function(outputFile){
+		var youtube = google.youtube({version:'v3'});
+
+			/*
+	resource: {
+			    title: path.basename(outputFile),
+			    mimeType: 'video/mp4'
+			  }
+			*/
+
+			youtube.videos.insert({
+			  part: "statistics",
+			  media: {
+			    mimeType: 'video/mp4',
+			    body: fs.createReadStream(outputFile) 
+			  }
+			}, onVideoUploaded);
+	}
+
+	var onVideoUploaded = function(err){
+		if(err){
+			console.error(err);
+			console.log(arguments);
+		}
+		else {
+			console.log('video uploaded');
+		}
+	}
+
 	var onDirChanged = function(parentDir, files){
 		if( watchDir == parentDir ) return;
 
@@ -46,6 +114,7 @@ module.exports = function(config){
 		var filePaths = files.map(function(file){ return path.join(parentDir,file) });
 		imageSequence = ImageSequence(filePaths,config);
 		var sequenceFilename = imageSequence.save();
+		var outputFile = parentDir+".mp4";
 
 		//ffmpeg -r $FPS -f concat -i $1 -r $FPS -vf crop=2048:1536 -vf scale=1024:768 $2
 		var ffmpegArgs = [
@@ -61,7 +130,7 @@ module.exports = function(config){
 			'-pix_fmt', 'yuv420p',
 			'-level', '4.0',
 			'-y',
-			parentDir+".mp4"
+			outputFile
 		];
 		var ffmpegCmd = config.ffmpegBinary;
 		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs, { stdio : 'inherit'});
@@ -70,19 +139,9 @@ module.exports = function(config){
 			endpoints.exitWithError(child.stderr.toString());
 		}
 
-	}
-
-	var upload = function(){
-		var video = youtube
-			.createUpload('/path/to/my/video.webm')
-			.user('paul hayes')
-			.source('LearnBoost')
-			.password(config.password)
-			.key(config.youTube.authKey)
-			.title('Testing')
-			.description('Some test stuff')
-			.category('Education')
-			.upload(onUploadComplete);
+		if( automaticUpload ){
+			upload(outputFile);
+		}
 	}
 
 	var onUploadComplete = function(err, res){

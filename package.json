@@ -18,7 +18,10 @@
   },
   "homepage": "https://github.com/3dify/time-freeze-video-maker",
   "dependencies": {
+    "express": "^4.13.3",
+    "googleapis": "^2.1.3",
     "lodash": "^3.10.1",
+    "open": "0.0.5",
     "qr-image": "^3.1.0",
     "thermalprinter": "git+https://github.com/3dify/thermalPrinter.git",
     "watch": "^0.16.0",
