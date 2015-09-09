@@ -12,12 +12,14 @@ if( fs.existsSync(config.privateConfig) ){
 	config = util._extend(config,privateConfig);
 }
 
-
 var cwd = process.cwd();
 var videoMaker = VideoMaker(config);
 
 if( args.w && args._.length == 0 ){
 	videoMaker.watch(args.w);
+}
+else if(args.c && args._.length == 0){
+	console.info(config);
 }
 else if(args._.length == 1 ){
 	videoMaker.process(args._[0]);

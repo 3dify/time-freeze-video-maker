@@ -7,5 +7,10 @@ module.exports = {
 	'loop':8,
 	'bitrate':'8000k',
 	'ffmpegBinary':'ffmpeg',
-	'tmpPath':'/tmp'
+	'tmpPath':'/tmp',
+	'youTubeOptions':{
+		'shortUrl':'https://youtu.be/%s',
+		'redirectPort': 5000,
+		'redirectUrlPath':'/oauth2callback'
+	}
 };

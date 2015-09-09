@@ -4,8 +4,6 @@ var open = require('open');
 var express = require('express');
 
 var exports = {};
-var port = 5000;
-var redirectUrlPath = '/oauth2callback';
 
 var OAuth2 = google.auth.OAuth2;
 
@@ -21,7 +19,7 @@ exports.options = function(opts){
 
 exports.authenticate = function(config, authCompleteCallback){
 
-	var oauth2Client = new OAuth2(config.youTube.clientId, config.youTube.clientSecret, 'http://localhost:'+config.youTube.redirectPort+config.youTube.redirectUrlPath);
+	var oauth2Client = new OAuth2(config.youTube.clientId, config.youTube.clientSecret, 'http://localhost:'+config.youTubeOptions.redirectPort+config.youTubeOptions.redirectUrlPath);
 	google.options({ auth: oauth2Client }); 
 
 	var authenticateByRefreshToken = function(){
@@ -30,8 +28,15 @@ exports.authenticate = function(config, authCompleteCallback){
 			refresh_token: options.refreshToken
 		});
 		oauth2Client.refreshAccessToken(function(err, tokens) {
-		  // your access_token is now refreshed and stored in oauth2Client
-		  // store these new tokens in a safe place (e.g. database)
+
+		  if( err ){
+		  	//if this failed the token may have expired, try the main technique
+		  	options.refreshToken = null;
+		  	options.accessToken = null;
+		  	exports.authenticate(config,authCompleteCallback);
+		  	return;
+		  }
+
 		  options.accessToken = tokens.access_token || options.accessToken; 
 		  options.refreshToken = tokens.refresh_token || options.refreshToken; 
 		  console.info("Add the refresh token to you");
@@ -49,7 +54,7 @@ exports.authenticate = function(config, authCompleteCallback){
   		});
   		
   		var app = express();
-  		app.get(redirectUrlPath,function(req,res){
+  		app.get(config.youTubeOptions.redirectUrlPath,function(req,res){
   			
   			oauth2Client.getToken(req.query.code, function(err, tokens) {
 		      // set tokens to the client
@@ -70,13 +75,16 @@ exports.authenticate = function(config, authCompleteCallback){
 	    	});
 
   		});
-  		var server = app.listen(port, function(){
+  		var server = app.listen(config.youTubeOptions.redirectPort, function(){
 		  	open(url);
   		});
 
 	}
 
-	if( authenticated ) return;
+	if( authenticated ){
+		authCompleteCallback();
+		return;
+	};
 
 	if( options.refreshToken ){
 		authenticateByRefreshToken();

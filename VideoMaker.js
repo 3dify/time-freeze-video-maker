@@ -1,5 +1,6 @@
 var path = require('path');
 var fs = require('fs');
+var util = require('util');
 var lodash = require('lodash');
 var watcher = require('./watcher.js');
 var youtube = require('youtube');
@@ -70,35 +71,6 @@ module.exports = function(config){
 			
 	}
 
-	var onAuthComplete = function(outputFile){
-		var youtube = google.youtube({version:'v3'});
-
-			/*
-	resource: {
-			    title: path.basename(outputFile),
-			    mimeType: 'video/mp4'
-			  }
-			*/
-
-			youtube.videos.insert({
-			  part: "statistics",
-			  media: {
-			    mimeType: 'video/mp4',
-			    body: fs.createReadStream(outputFile) 
-			  }
-			}, onVideoUploaded);
-	}
-
-	var onVideoUploaded = function(err){
-		if(err){
-			console.error(err);
-			console.log(arguments);
-		}
-		else {
-			console.log('video uploaded');
-		}
-	}
-
 	var onDirChanged = function(parentDir, files){
 		if( watchDir == parentDir ) return;
 
@@ -144,14 +116,47 @@ module.exports = function(config){
 		}
 	}
 
-	var onUploadComplete = function(err, res){
-		if (err) throw err;
-		console.log('done');
-		console.log(res.id);
-		console.log(res.url);
-		console.log(res.embed());
-		console.log(res.embed(320, 320));
-		console.log(util.inspect(res, false, 15, true));
+	var onAuthComplete = function(outputFile){
+		uploadVideoFile(outputFile);
+	}
+
+	var uploadVideoFile = function(outputFile){
+		var youtube = google.youtube({version:'v3'});
+
+			var videoData =  {
+			  part: "statistics, contentDetails, snippet",
+			  resource: {
+			  	snippet :{
+			  	}
+
+			  },
+			  media: {
+			    mimeType: 'video/mp4',
+			    body: fs.createReadStream(outputFile) 
+			  }
+			};
+
+			if( config.youTube.channel ) videoData.resource.snippet.channelId = config.youTube.channel;  	
+			if( config.youTube.title ) videoData.resource.snippet.title = config.youTube.title;
+			if( config.youTube.tags ) videoData.resource.snippet.tags = config.youTube.tags;
+			if( config.youTube.description ) videoData.resource.snippet.description = config.youTube.description;
+
+			console.log(videoData);
+
+			youtube.videos.insert(videoData, onUploadComplete);
+	}
+
+	var onUploadComplete = function(err,videoData){
+		if(err){
+			console.error(err);
+			console.log(arguments);
+		}
+		else {
+			//console.log(videoData);
+			var videoUrl = util.format(config.youTubeOptions.shortUrl,videoData.id);
+			console.log('video uploaded '+videoUrl);
+			
+		}
 	}
 
 	var resolveDirectory = function(dir){
