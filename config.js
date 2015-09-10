@@ -12,5 +12,13 @@ module.exports = {
 		'shortUrl':'https://youtu.be/%s',
 		'redirectPort': 5000,
 		'redirectUrlPath':'/oauth2callback'
+	},
+	'basedir':__dirname,
+	'processed':'processed.txt',
+	'serialPrinter': {
+		'device':'/dev/tty.usbserial-AD0266G4',
+		'baudrate':9600,
+		'width':384,
+		'logo':'logo.png'
 	}
 };

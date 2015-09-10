@@ -1,13 +1,17 @@
 var path = require('path');
 var fs = require('fs');
 var util = require('util');
+var child_process = require('child_process');
+
 var lodash = require('lodash');
 var watcher = require('./watcher.js');
 var youtube = require('youtube');
-var child_process = require('child_process');
+var google = require('googleapis');
+require('stringformat').extendString();
+
 var ImageSequence = require('./ImageSequence');
 var OAuthHelper = require('./OAuthHelper');
-var google = require('googleapis');
+var PrintQRCode = require('./PrintQRCode');
 
 
 module.exports = function(config){
@@ -16,6 +20,7 @@ module.exports = function(config){
 	var currentSubdirs;
 	var watchDir;
 	var automaticUpload = true;
+	
 
 	OAuthHelper.options({
 		scope:['https://www.googleapis.com/auth/youtube',
@@ -81,6 +86,10 @@ module.exports = function(config){
 		}
 	}
 
+	var queueVideo = function(){
+
+	}
+
 	var makeVideo = function(parentDir,files){
 		files.sort();
 		var filePaths = files.map(function(file){ return path.join(parentDir,file) });
@@ -112,7 +121,7 @@ module.exports = function(config){
 		}
 
 		if( automaticUpload ){
-			upload(outputFile);
+			endpoints.upload(outputFile);
 		}
 	}
 
@@ -141,8 +150,6 @@ module.exports = function(config){
 			if( config.youTube.tags ) videoData.resource.snippet.tags = config.youTube.tags;
 			if( config.youTube.description ) videoData.resource.snippet.description = config.youTube.description;
 
-			console.log(videoData);
-
 			youtube.videos.insert(videoData, onUploadComplete);
 	}
 
@@ -155,7 +162,7 @@ module.exports = function(config){
 			//console.log(videoData);
 			var videoUrl = util.format(config.youTubeOptions.shortUrl,videoData.id);
 			console.log('video uploaded '+videoUrl);
-			
+			PrintQRCode.printUrl(videoUrl);
 		}
 	}
 
