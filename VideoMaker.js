@@ -8,20 +8,22 @@ var youtube = require('youtube');
 var google = require('googleapis');
 require('stringformat').extendString();
 
+var colors = require('colors');
+var ObjectQ = require('objectq').ObjectQ;
+
+
 var ImageSequence = require('./ImageSequence');
 var OAuthHelper = require('./OAuthHelper');
 var PrintQRCode = require('./PrintQRCode');
-var colors = require('colors');
-var ObjectQ = require('objectq').ObjectQ;
-var isProcessingVideo = false;
 
 module.exports = function(config){
 
 	var currentSubdirs;
 	var watchDir;
 	var uploadAutomatically = true;
-    var tasks;
-
+    var isProcessingVideo = false;
+	var tasks;
+	
 	OAuthHelper.options({
 		scope:['https://www.googleapis.com/auth/youtube',
 	    		'https://www.googleapis.com/auth/youtube.force-ssl',
@@ -90,8 +92,6 @@ module.exports = function(config){
 	}
 
 	var onDirChanged = function(parentDir, files){
-		notice( "Directory \n{0}!={1}".format(parentDir,watchDir) );
-		return;
 
 		if( watchDir == parentDir ) return;
 
@@ -125,7 +125,7 @@ module.exports = function(config){
 	}
 
 	var makeVideo = function(parentDir,files){
-		dir = resolveDirectory(dir);
+		parentDir	 = resolveDirectory(parentDir);
 
 		if( !files ){
 			files = fs.readdirSync(parentDir);
@@ -207,12 +207,18 @@ module.exports = function(config){
 			//console.log(videoData);
 			var videoUrl = config.youTubeOptions.shortUrl.format(videoData.id);
 			console.log('video uploaded '+videoUrl);
-			PrintQRCode.printUrl(videoUrl);
+			PrintQRCode.printUrl(videoUrl,config.serialPrinter, onPrintingComplete);
 		}
 
-		isProcessingVideo = false;
+	}
 
+	var onPrintingComplete = function(err){
+		if( err ){
+			warning(err.toString());
+		}
+		isProcessingVideo = false;
 		shiftQueue();
+
 	}
 
 	var resolveDirectory = function(dir){
@@ -232,6 +238,10 @@ module.exports = function(config){
 
 		if(!fs.statSync(resolvedDir).isDirectory()){
 			exitWithError("path {0} given was not a directory",format(dir));						
+		}
+
+		if(resolvedDir.charAt(resolvedDir.length-1)=="/"){
+			resolvedDir = resolvedDir.slice(0,-1);
 		}
 
 		return resolvedDir;

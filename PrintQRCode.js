@@ -19,7 +19,7 @@ var resizeImage = function(size,data){
 
     for(var i=0;i<N;i++){
         for(var j=0;j<N;j++){
-            newBuffer[(i+margin)*(size+1)+(j+margin)] = oldBuffer[i*(N+1)+j];
+            newBuffer[(i+margin)*(size+1)+(j+margin)] = oldBuffer[i*(N+1)+j+1];
         }
     }
     
@@ -28,7 +28,7 @@ var resizeImage = function(size,data){
 }
 
 module.exports = {
-	printUrl : function(url,config){
+	printUrl : function(url,config,callback){
 
 		if( config == null ){
 			config = {
@@ -37,8 +37,7 @@ module.exports = {
 				'width':384,
 				'logo':'logo.png'
 			}
-		} 
-
+		}
 		
 		var resize = resizeImage.bind(null,config.width);
 
@@ -56,7 +55,7 @@ module.exports = {
         	baudrate: config.baudrate
 		});
 
-		serialPort.on('open',function(error) {
+		serialPort.on('open', function(error) {
 		    if ( error ) {
 		        console.log('failed to open: '+error);
 		        return;
@@ -83,12 +82,14 @@ module.exports = {
 		            .printImage(pngFile)
 		            .lineFeed(4)
 		            .print(function() {
-		                console.log('done');
 		                serialPort.close();
 		                fs.unlinkSync(pngFile);
+				       	if( callback ) callback(null);
 		            });
-
 		    });
+		}).on('error',function(error){
+            fs.unlinkSync(pngFile);
+			if( callback ) callback(error)
 		});
 		
 	}

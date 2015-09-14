@@ -27,7 +27,7 @@ module.exports = function(directory, callback) {
 
     if (action && action !== REMOVED) {
       var parentDir = path.dirname(f);
-      console.log(parentDir);
+      
       if (fs.existsSync(parentDir)) {
           var files = fs.readdirSync(parentDir);
           callback(parentDir, files);
