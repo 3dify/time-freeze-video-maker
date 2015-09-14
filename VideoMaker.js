@@ -190,8 +190,8 @@ module.exports = function(config){
 
 		var data = {
 			dir : path.basename(outputFile,'.mp4'),
-			date : d.toLocaleDateString(),
-			time : d.toLocaleTimeString()
+			date : new Date().toLocaleDateString(),
+			time : new Date().toLocaleTimeString()
 		}
 
 		if( config.youTube.channel ) videoData.resource.snippet.channelId = config.youTube.channel;  	
