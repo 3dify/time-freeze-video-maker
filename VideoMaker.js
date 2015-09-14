@@ -21,6 +21,7 @@ module.exports = function(config){
 	var currentSubdirs;
 	var watchDir;
 	var uploadAutomatically = true;
+
     var isProcessingVideo = false;
 	var tasks;
 	
@@ -103,12 +104,10 @@ module.exports = function(config){
 
 		if( watchDir == parentDir ) return;
 
-		notice( "Directory {0} has changed".format(parentDir) );
 
-		if( files.length >= config.numCameras ){
-			
-			queueVideo(parentDir);
-			
+		if( files.length >= config.numCameras && !fs.existsSync(generateVideoFileName(parentDir)) ){
+			notice( "Enqueing dir for processing {0}".format(parentDir) );
+			queueVideo(parentDir);			
 		}
 
 		if( !isProcessingVideo ) shiftQueue();
@@ -146,7 +145,7 @@ module.exports = function(config){
 		var filePaths = files.map(function(file){ return path.join(parentDir,file) });
 		imageSequence = ImageSequence(filePaths,config);
 		var sequenceFilename = imageSequence.save();
-		var outputFile = parentDir+".mp4";
+		var outputFile = generateVideoFileName(parentDir);
 
 		//ffmpeg -r $FPS -f concat -i $1 -r $FPS -vf crop=2048:1536 -vf scale=1024:768 $2
 		var ffmpegArgs = [
@@ -178,6 +177,10 @@ module.exports = function(config){
 			isProcessingVideo = false;
 			shiftQueue();
 		}
+	}
+
+	var generateVideoFileName = function(dir){
+		return dir+".mp4"
 	}
 
 	var onAuthComplete = function(outputFile){
@@ -213,7 +216,6 @@ module.exports = function(config){
 			warning(err);
 		}
 		else {
-			//console.log(videoData);
 			var videoUrl = config.youTubeOptions.shortUrl.format(videoData.id);
 			console.log('video uploaded '+videoUrl);
 			PrintQRCode.printUrl(videoUrl,config.serialPrinter, onPrintingComplete);

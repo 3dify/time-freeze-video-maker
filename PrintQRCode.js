@@ -88,7 +88,7 @@ module.exports = {
 		            });
 		    });
 		}).on('error',function(error){
-            fs.unlinkSync(pngFile);
+			fs.unlinkSync(pngFile);
 			if( callback ) callback(error)
 		});
 		

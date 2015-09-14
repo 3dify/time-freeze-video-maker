@@ -1,6 +1,6 @@
 module.exports = {
 	'privateConfig':'./.config.js',
-	'numCameras':10,
+	'numCameras':50,
 	'framerate':18,
 	'width':1620,
 	'height':1080,
