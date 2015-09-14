@@ -4,7 +4,6 @@ var util = require('util');
 var child_process = require('child_process');
 var lodash = require('lodash');
 var watcher = require('./watcher.js');
-var youtube = require('youtube');
 var google = require('googleapis');
 require('stringformat').extendString();
 
@@ -82,21 +81,8 @@ module.exports = function(config){
 	}
 
 	var upload = function(outputFile){
-		/*
-		var video = youtube
-			.createUpload(outputFile)
-			.user(config.youTube.user)
-			.source(config.youTube.source)
-			.password(config.youTube.password)
-			.key(config.youTube.authKey)
-			.title('Testing')
-			.description('Some test stuff')
-			//.category('Education')
-			.upload(onUploadComplete);
-			*/
-
-			OAuthHelper.authenticate( config, onAuthComplete.bind(null,outputFile) );
-
+		
+		OAuthHelper.authenticate( config, onAuthComplete.bind(null,outputFile) );
 			
 	}
 
@@ -105,7 +91,7 @@ module.exports = function(config){
 		if( watchDir == parentDir ) return;
 
 
-		if( files.length >= config.numCameras && !fs.existsSync(generateVideoFileName(parentDir)) ){
+		if( files.length >= config.video.numCameras && !fs.existsSync(generateVideoFileName(parentDir)) ){
 			notice( "Enqueing dir for processing {0}".format(parentDir) );
 			queueVideo(parentDir);			
 		}
@@ -149,21 +135,21 @@ module.exports = function(config){
 
 		//ffmpeg -r $FPS -f concat -i $1 -r $FPS -vf crop=2048:1536 -vf scale=1024:768 $2
 		var ffmpegArgs = [
-			'-r', config.framerate,
+			'-r', config.video.framerate,
 			'-f', 'concat',
 			'-i', sequenceFilename,
-			'-r', config.framerate,
+			'-r', config.video.framerate,
 			//'-vf', 'crop=2048:1536',
-			'-vf', 'scale='+config.width+":"+config.height,
+			'-vf', 'scale='+config.video.width+":"+config.video.height,
 			'-c:v', 'libx264',
-			'-b:v', config.bitrate,
+			'-b:v', config.video.bitrate,
 			'-profile:v', 'high',
 			'-pix_fmt', 'yuv420p',
 			'-level', '4.0',
 			'-y',
 			outputFile
 		];
-		var ffmpegCmd = config.ffmpegBinary;
+		var ffmpegCmd = config.video.ffmpegBinary;
 		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs, { stdio : 'inherit'});
 
 		if(child.status>0){
@@ -189,26 +175,31 @@ module.exports = function(config){
 
 	var uploadVideoFile = function(outputFile){
 		var youtube = google.youtube({version:'v3'});
+		var videoData =  {
+		  part: "statistics, contentDetails, snippet",
+		  resource: {
+		  	snippet :{
+		  	}
 
-			var videoData =  {
-			  part: "statistics, contentDetails, snippet",
-			  resource: {
-			  	snippet :{
-			  	}
+		  },
+		  media: {
+		    mimeType: 'video/mp4',
+		    body: fs.createReadStream(outputFile) 
+		  }
+		};
 
-			  },
-			  media: {
-			    mimeType: 'video/mp4',
-			    body: fs.createReadStream(outputFile) 
-			  }
-			};
+		var data = {
+			dir : path.basename(outputFile,'.mp4'),
+			date : d.toLocaleDateString(),
+			time : d.toLocaleTimeString()
+		}
 
-			if( config.youTube.channel ) videoData.resource.snippet.channelId = config.youTube.channel;  	
-			if( config.youTube.title ) videoData.resource.snippet.title = config.youTube.title;
-			if( config.youTube.tags ) videoData.resource.snippet.tags = config.youTube.tags;
-			if( config.youTube.description ) videoData.resource.snippet.description = config.youTube.description;
+		if( config.youTube.channel ) videoData.resource.snippet.channelId = config.youTube.channel;  	
+		if( config.youTubeOptions.title ) videoData.resource.snippet.title = config.youTubeOptions.title.format(data);
+		if( config.youTubeOptions.tags ) videoData.resource.snippet.tags = config.youTubeOptions.tags;
+		if( config.youTubeOptions.description ) videoData.resource.snippet.description = config.youTubeOptions.description.format(data);
 
-			youtube.videos.insert(videoData, onUploadComplete);
+		youtube.videos.insert(videoData, onUploadComplete);
 	}
 
 	var onUploadComplete = function(err,videoData){

@@ -29,7 +29,6 @@
     "stringformat": "0.0.5",
     "thermalprinter": "git+https://github.com/3dify/thermalPrinter.git",
     "watch": "^0.16.0",
-    "yargs": "^3.24.0",
-    "youtube": "^0.1.0"
+    "yargs": "^3.24.0"
   }
 }

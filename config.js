@@ -1,17 +1,22 @@
 module.exports = {
 	'privateConfig':'./.config.js',
-	'numCameras':50,
-	'framerate':18,
-	'width':1620,
-	'height':1080,
-	'loop':8,
-	'bitrate':'8000k',
-	'ffmpegBinary':'ffmpeg',
 	'tmpPath':'/tmp',
+	'video':{
+		'numCameras':50,
+		'framerate':18,
+		'width':1620,
+		'height':1080,
+		'loop':8,
+		'bitrate':'8000k',
+		'ffmpegBinary':'ffmpeg',
+	},
 	'youTubeOptions':{
 		'shortUrl':'https://youtu.be/{0}',
 		'redirectPort': 5000,
-		'redirectUrlPath':'/oauth2callback'
+		'redirectUrlPath':'/oauth2callback',
+		'title': 'eventname {dir} {time} {date}', // availbile format keys {dir}, {time}, {date}
+		'tags': ['3dify'],
+		'description':''
 	},
 	'basedir':__dirname,
 	'processed':'processed.txt',
