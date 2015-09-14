@@ -29,7 +29,6 @@ Make .config.js by copying private-config-template.js and filling in the details
 
 ## Todo
 * Integrate stablization code
-* Expose title
 
 ## Complete
 * Create video file
