@@ -41,6 +41,14 @@ module.exports = function(config){
 		
 		tasks = new ObjectQ(path.join(watchDir,config.queueFile), config.queueAutoSavePeriod);
 		
+		process.on('SIGINT', function () {
+			tasks.shutdown(function (err) {
+		    if (err) throw err;
+		    process.exit(0);
+		  });
+		  
+		});
+
 		watcher( dir, onDirChanged );
 		shiftQueue();
 	}
@@ -110,6 +118,7 @@ module.exports = function(config){
 		var notInQueue = tasks._queue.every(function(task){ return task.parentDir!=parentDir });
 		if( notInQueue ){
 			tasks.queue({parentDir:parentDir});
+			tasks.flush();
 		}
 	}
 
@@ -119,6 +128,7 @@ module.exports = function(config){
 
 
 		var next = tasks.shift();
+		tasks.flush();
 		if( next ){
 			makeVideo(next.parentDir);
 		}
@@ -158,7 +168,7 @@ module.exports = function(config){
 		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs, { stdio : 'inherit'});
 
 		if(child.status>0){
-			exitWithError(child.stderr.toString());
+			process.exit(1);
 		}
 
 		if( uploadAutomatically ){
@@ -201,7 +211,6 @@ module.exports = function(config){
 	var onUploadComplete = function(err,videoData){
 		if(err){
 			warning(err);
-			warning(arguments);
 		}
 		else {
 			//console.log(videoData);

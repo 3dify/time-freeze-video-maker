@@ -22,7 +22,7 @@
     "express": "^4.13.3",
     "googleapis": "^2.1.3",
     "lodash": "^3.10.1",
-    "objectq": "0.0.1",
+    "objectq": "https://github.com/paulhayes/node-objectq/tarball/master",
     "open": "0.0.5",
     "qr-image": "^3.1.0",
     "serialport": "^1.7.4",
