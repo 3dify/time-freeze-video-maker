@@ -4,6 +4,7 @@
 
 ## Todo
 * Detect change to directory, build sorted image set
+* Create processing queue for directories to process
 * Integrate stablization code
 
 ## Complete
