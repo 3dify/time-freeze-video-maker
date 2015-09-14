@@ -2,7 +2,6 @@ var path = require('path');
 var fs = require('fs');
 var util = require('util');
 var child_process = require('child_process');
-
 var lodash = require('lodash');
 var watcher = require('./watcher.js');
 var youtube = require('youtube');
@@ -12,15 +11,16 @@ require('stringformat').extendString();
 var ImageSequence = require('./ImageSequence');
 var OAuthHelper = require('./OAuthHelper');
 var PrintQRCode = require('./PrintQRCode');
-
+var colors = require('colors');
+var ObjectQ = require('objectq').ObjectQ;
+var isProcessingVideo = false;
 
 module.exports = function(config){
 
-	var endpoints = {};
 	var currentSubdirs;
 	var watchDir;
-	var automaticUpload = true;
-	
+	var uploadAutomatically = true;
+    var tasks;
 
 	OAuthHelper.options({
 		scope:['https://www.googleapis.com/auth/youtube',
@@ -33,31 +33,44 @@ module.exports = function(config){
 		refreshToken:config.youTube.refreshToken
 	});
 	
-	endpoints.watch = function(dir){
-		watchDir = dir = resolveDirectory(dir);
-		watcher( dir, onDirChanged )
-	}
-
-	endpoints.process = function(dir){
-		dir = resolveDirectory(dir);
-		console.log("processing "+dir);
-
-		var files = fs.readdirSync(dir);
+	var watch = function(dir){
 		
-		makeVideo(dir, files)
+		watchDir = dir = resolveDirectory(dir);
+		
+		tasks = new ObjectQ(path.join(watchDir,config.queueFile), config.queueAutoSavePeriod);
+		
+		watcher( dir, onDirChanged );
+		shiftQueue();
+	}
+
+	var processDir = function(dir){
+		notice("processing "+dir);
+		
+		makeVideo(dir);
 
 	}
 
-	endpoints.exitWithError = function(msg){
-		process.stderr.write(msg+"\n");
+	var exitWithError = function(){
+		var msg = '\nError:\n'+Array.prototype.slice.call(arguments).map(traceOrInspect).join('\n')+'\n';
+		process.stderr.write(msg.red);
 		process.exit(1);
 	}
 
-	endpoints.automaticUpload = function(enabled){
-		automaticUpload = enabled;
+	var warning = function(){
+		var msg = '\nWarning:\n'+Array.prototype.slice.call(arguments).map(traceOrInspect).join('\n')+'\n';
+		process.stderr.write(msg.yellow);
 	}
 
-	endpoints.upload = function(outputFile){
+	var notice = function(){
+		var msg = '\nNotice:\n'+Array.prototype.slice.call(arguments).map(traceOrInspect).join('\n')+'\n';
+		process.stderr.write(msg.grey);
+	}
+
+	var automaticUpload = function(enabled){
+		uploadAutomatically = enabled;
+	}
+
+	var upload = function(outputFile){
 		/*
 		var video = youtube
 			.createUpload(outputFile)
@@ -77,20 +90,48 @@ module.exports = function(config){
 	}
 
 	var onDirChanged = function(parentDir, files){
+		notice( "Directory \n{0}!={1}".format(parentDir,watchDir) );
+		return;
+
 		if( watchDir == parentDir ) return;
 
-		console.log( parentDir, files );
+		notice( "Directory {0} has changed".format(parentDir) );
 
 		if( files.length >= config.numCameras ){
-			makeVideo(parentDir,files)
+			
+			queueVideo(parentDir);
+			
+		}
+
+		if( !isProcessingVideo ) shiftQueue();
+	}
+
+	var queueVideo = function(parentDir,files){
+		var notInQueue = tasks._queue.every(function(task){ return task.parentDir!=parentDir });
+		if( notInQueue ){
+			tasks.queue({parentDir:parentDir});
 		}
 	}
 
-	var queueVideo = function(){
+	var shiftQueue = function(){
+		/* if tasks is undefined abort */
+		if( !tasks ) return;
 
+
+		var next = tasks.shift();
+		if( next ){
+			makeVideo(next.parentDir);
+		}
 	}
 
 	var makeVideo = function(parentDir,files){
+		dir = resolveDirectory(dir);
+
+		if( !files ){
+			files = fs.readdirSync(parentDir);
+		}
+
+		isProcessingVideo = true;
 		files.sort();
 		var filePaths = files.map(function(file){ return path.join(parentDir,file) });
 		imageSequence = ImageSequence(filePaths,config);
@@ -117,11 +158,15 @@ module.exports = function(config){
 		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs, { stdio : 'inherit'});
 
 		if(child.status>0){
-			endpoints.exitWithError(child.stderr.toString());
+			exitWithError(child.stderr.toString());
 		}
 
-		if( automaticUpload ){
-			endpoints.upload(outputFile);
+		if( uploadAutomatically ){
+			upload(outputFile);
+		}
+		else {
+			isProcessingVideo = false;
+			shiftQueue();
 		}
 	}
 
@@ -155,15 +200,19 @@ module.exports = function(config){
 
 	var onUploadComplete = function(err,videoData){
 		if(err){
-			console.error(err);
-			console.log(arguments);
+			warning(err);
+			warning(arguments);
 		}
 		else {
 			//console.log(videoData);
-			var videoUrl = util.format(config.youTubeOptions.shortUrl,videoData.id);
+			var videoUrl = config.youTubeOptions.shortUrl.format(videoData.id);
 			console.log('video uploaded '+videoUrl);
 			PrintQRCode.printUrl(videoUrl);
 		}
+
+		isProcessingVideo = false;
+
+		shiftQueue();
 	}
 
 	var resolveDirectory = function(dir){
@@ -171,7 +220,7 @@ module.exports = function(config){
 		var resolvedDir = dir;
 
 		if( !fs.existsSync(resolvedDir) ){
-			endpoints.exitWithError("directory not found");			
+			exitWithError("path {0} not found".format(dir));			
 		}
 
 		if( path.isAbsolute(dir) ){
@@ -182,12 +231,25 @@ module.exports = function(config){
 		}
 
 		if(!fs.statSync(resolvedDir).isDirectory()){
-			endpoints.exitWithError("path given was not a directory");						
+			exitWithError("path {0} given was not a directory",format(dir));						
 		}
 
 		return resolvedDir;
 
 	}
 
-	return endpoints;
+	var traceOrInspect = function(m){ 
+		return (typeof(m)=='string')?m:util.inspect(m)+' '; 
+	}
+
+	var exports = {
+		watch : watch,
+		process : processDir,
+		upload : upload,
+		exitWithError : exitWithError,
+		warning : warning,
+		notice : notice
+	}
+
+	return exports;
 }
