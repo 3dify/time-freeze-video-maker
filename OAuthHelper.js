@@ -77,8 +77,12 @@ exports.authenticate = function(config, authCompleteCallback){
 		      	setCredentials();
 		      	res.send(util.inspect(tokens));
 		      	authenticated = true;
-			    	server.close();
-			    	authCompleteCallback();
+		      	res.end();
+		    	console.log("shutting server down... this can take a while, be patient");
+	    		server.close(function(){
+	    			console.log("server shut down");
+	    			authCompleteCallback();
+	    		});	
 	    	});
 
   		});

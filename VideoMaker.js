@@ -3,7 +3,6 @@ var fs = require('fs');
 var util = require('util');
 var child_process = require('child_process');
 var lodash = require('lodash');
-var watcher = require('./watcher.js');
 var google = require('googleapis');
 var stabilize = require('stabilize');
 
@@ -13,6 +12,7 @@ var colors = require('colors');
 var ObjectQ = require('objectq').ObjectQ;
 
 
+var watcher = require('./watcher.js');
 var ImageSequence = require('./ImageSequence');
 var OAuthHelper = require('./OAuthHelper');
 var PrintQRCode = require('./PrintQRCode');
@@ -22,7 +22,6 @@ module.exports = function(config){
 	var currentSubdirs;
 	var watchDir;
 	var uploadAutomatically = true;
-
     var isProcessingVideo = false;
 	var tasks;
 	
@@ -128,9 +127,17 @@ module.exports = function(config){
 			files = fs.readdirSync(parentDir);
 		}
 
+		files = files.filter(function(file){	
+			var ext = path.extname(file).toLowerCase();
+			return ['.jpg','.png'].indexOf(ext)>=0 && file.indexOf('-stabilized')==-1;
+		});
+
 		isProcessingVideo = true;
 		files.sort();
 		var filePaths = files.map(function(file){ return path.join(parentDir,file) });
+
+		//filePaths = stabilizeImages(filePaths);
+
 		imageSequence = ImageSequence(filePaths,config);
 		var sequenceFilename = imageSequence.save();
 		var outputFile = generateVideoFileName(parentDir);
@@ -165,6 +172,19 @@ module.exports = function(config){
 			isProcessingVideo = false;
 			shiftQueue();
 		}
+	}
+
+	var stabilizeImages = function(orig){
+		orig = orig.map(function(file){ return fs.realpathSync(file); });
+		var dest = orig.map(function(img){
+			var parts = img.split('.');
+			parts[parts.length-2]+='-stabilized';
+			return parts.join('.');
+		});
+
+		stabilize(orig, dest);
+
+		return dest;
 	}
 
 	var generateVideoFileName = function(dir){
