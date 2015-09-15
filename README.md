@@ -3,19 +3,19 @@
 ## Installation
 
 Checkout out the repository and then run the following in the project dir.
-```
+```bash
 npm install
 ```
 
 ## Usage
 
 To continuously watch a directory:
-```
+```bash
 ./main.js -w {parent_dir}
 ```
 
 To process the images in a directory
-```
+```bash
 ./main.js {image_dir}
 ```
 
