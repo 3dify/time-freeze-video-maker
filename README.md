@@ -41,7 +41,7 @@ Make .config.js by copying private-config-template.js and filling in the details
 
 ## Todo
 * Integrate stablization code
-* Expose title
+* Add option for insertion of splash header and info footer to video.
 
 ## Complete
 * Create video file
