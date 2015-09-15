@@ -35,7 +35,12 @@ module.exports = {
 				'device':'/dev/tty.usbserial-AD0266G4',
 				'baudrate':9600,
 				'width':384,
-				'logo':'logo.png'
+				'logo':'logo.png',
+				'heatingTime':200,
+				'heatingInterval':2,
+				'maxPrintingDots':4,
+				'topLineFeed':1,
+				'bottomLineFeed':4
 			}
 		}
 		
@@ -61,13 +66,12 @@ module.exports = {
 		        return;
 		    }
 		    var printer = new Printer(serialPort,{
-		        heatingTime : 255,
-		        heatingInterval: 0,
-		        maxPrintingDots: 1
+		        heatingTime : config.heatingTime,
+		        heatingInterval: config.heatingInterval,
+		        maxPrintingDots: config.maxPrintingDots
 		    });
 			printer.on('ready', function() {
-		        printer
-		            .lineFeed(4)
+		        printer.lineFeed(config.topLineFeed);
 
 		        if( logoFile ){
 		        	printer.printImage(logoFile);
@@ -80,7 +84,7 @@ module.exports = {
 		            .big(url.length<15?true:false)
 		            .printLine(url)
 		            .printImage(pngFile)
-		            .lineFeed(4)
+		            .lineFeed(config.bottomLineFeed)
 		            .print(function() {
 		                serialPort.close();
 		                fs.unlinkSync(pngFile);
@@ -89,7 +93,8 @@ module.exports = {
 		    });
 		}).on('error',function(error){
 			fs.unlinkSync(pngFile);
-			if( callback ) callback(error)
+			if( callback ) callback(error);
+			else console.error(error);
 		});
 		
 	}

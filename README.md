@@ -27,6 +27,18 @@ Configuration is stored in config.js and .config.js.
 
 Make .config.js by copying private-config-template.js and filling in the details.
 
+## Thermal Printer
+
+```
+    Pin outs
+
+    1 - V ( Red )
+    2 - DTR
+    3 - TX
+    4 - RX
+    5 - G
+```
+
 ## Todo
 * Integrate stablization code
 * Expose title

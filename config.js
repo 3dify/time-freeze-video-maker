@@ -26,6 +26,11 @@ module.exports = {
 		'device':'/dev/tty.usbserial-AD0266G4',
 		'baudrate':9600,
 		'width':384,
+		'heatingTime':200,
+		'heatingInterval':2,
+		'maxPrintingDots':4,
+		'topLineFeed':1,
+		'bottomLineFeed':4,
 		'logo':'logo.png'
 	}
 };
