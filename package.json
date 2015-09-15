@@ -26,6 +26,7 @@
     "open": "0.0.5",
     "qr-image": "^3.1.0",
     "serialport": "^1.7.4",
+    "stabilize": "git+https://github.com/3dify/stabilize.git",
     "stringformat": "0.0.5",
     "thermalprinter": "git+https://github.com/3dify/thermalPrinter.git",
     "watch": "^0.16.0",

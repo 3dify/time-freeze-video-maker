@@ -5,6 +5,8 @@ var child_process = require('child_process');
 var lodash = require('lodash');
 var watcher = require('./watcher.js');
 var google = require('googleapis');
+var stabilize = require('stabilize');
+
 require('stringformat').extendString();
 
 var colors = require('colors');
