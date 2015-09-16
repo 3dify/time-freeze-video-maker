@@ -244,7 +244,8 @@ module.exports = function(config){
 		else {
 			var videoUrl = config.youTubeOptions.shortUrl.format(videoData.id);
 			console.log('video uploaded '+videoUrl);
-			config.serialPrinter.footerText = currentId;
+			config.serialPrinter.footerText = [currentId,"http://3dify.co.uk/"];
+
 			if( currentDir ) fs.writeFileSync(path.join(currentDir,currentId+".txt"),videoUrl);
 			PrintQRCode.printUrl(videoUrl,config.serialPrinter, onPrintingComplete);
 		}
