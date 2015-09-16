@@ -11,7 +11,8 @@ module.exports = {
 		'ffmpegBinary':'ffmpeg',
 		'header':'revolve_scaled.jpg',
 		'footer':'footer.jpg',
-		'headerDuration':3
+		'headerDuration':3,
+		'footerDuration':3
 	},
 	'youTubeOptions':{
 		'shortUrl':'https://youtu.be/{0}',
