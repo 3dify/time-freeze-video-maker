@@ -95,10 +95,16 @@ module.exports = {
 		            .printLine(url)
 		            .printImage(pngFile);
 
+
 		        if(config.footerText){
 		        	var footerText = config.footerText;
-		            printer.big(footerText.length<15?true:false);
-		        	printer.printLine(footerText);
+		            if(!( footerText instanceof Array ) ){
+		            	footerText = [footerText];
+		        	}
+		        	footerText.forEach(function(text){
+			        	printer.big(text.length<15?true:false);
+			        	printer.printLine(text);
+		        	});
 		        }
 
 		        printer.lineFeed(config.bottomLineFeed);
