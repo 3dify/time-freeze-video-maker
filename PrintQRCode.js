@@ -86,7 +86,7 @@ module.exports = {
 		            .printImage(pngFile)
 		            .lineFeed(config.bottomLineFeed)
 		            .print(function() {
-		            	serialport.flush(function(error){
+		            	serialPort.flush(function(error){
 		            		if(error) console.error(error);
 			                serialPort.close(function(){
 				                fs.unlinkSync(pngFile);
