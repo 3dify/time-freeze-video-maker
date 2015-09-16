@@ -83,17 +83,25 @@ module.exports = {
 		            .indent(2)
 		            .big(url.length<15?true:false)
 		            .printLine(url)
-		            .printImage(pngFile)
-		            .lineFeed(config.bottomLineFeed)
-		            .print(function() {
-		            	serialPort.flush(function(error){
-		            		if(error) console.error(error);
-			                serialPort.close(function(){
-				                fs.unlinkSync(pngFile);
-						       	if( callback ) callback(null);			                	
-			                });
-		            	});
-		            });
+		            .printImage(pngFile);
+
+		        if(config.footerText){
+		        	var footerText = config.footerText;
+		            printer.big(footerText.length<15?true:false);
+		        	printer.printLine(footerText);
+		        }
+
+		        printer.lineFeed(config.bottomLineFeed);
+
+	            printer.print(function() {
+	            	serialPort.flush(function(error){
+	            		if(error) console.error(error);
+		                serialPort.close(function(){
+			                fs.unlinkSync(pngFile);
+					       	if( callback ) callback(null);			                	
+		                });
+	            	});
+	            });
 		    });
 		}).on('error',function(error){
 			fs.unlinkSync(pngFile);

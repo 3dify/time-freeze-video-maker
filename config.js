@@ -9,6 +9,9 @@ module.exports = {
 		'loop':8,
 		'bitrate':'8000k',
 		'ffmpegBinary':'ffmpeg',
+		'header':'revolve_hi_res.png',
+		'footer':'footer.png',
+		'headerDuration':3
 	},
 	'youTubeOptions':{
 		'shortUrl':'https://youtu.be/{0}',

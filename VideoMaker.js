@@ -24,6 +24,7 @@ module.exports = function(config){
 	var uploadAutomatically = true;
     var isProcessingVideo = false;
 	var tasks;
+	var currentId;
 	
 	OAuthHelper.options({
 		scope:['https://www.googleapis.com/auth/youtube',
@@ -44,10 +45,10 @@ module.exports = function(config){
 		
 		process.on('SIGINT', function () {
 			tasks.shutdown(function (err) {
-		    if (err) throw err;
-		    process.exit(0);
-		  });
-		  
+		    	if (err) throw err;
+		    	process.exit(0);
+			});
+		  	
 		});
 
 		watcher( dir, onDirChanged );
@@ -133,12 +134,21 @@ module.exports = function(config){
 		});
 
 		isProcessingVideo = true;
+		currentId = generateId();
+		
 		files.sort();
 		var filePaths = files.map(function(file){ return path.join(parentDir,file) });
 
 		//filePaths = stabilizeImages(filePaths);
 
 		imageSequence = ImageSequence(filePaths,config);
+		if( config.video.header && config.video.headerDuration ){ 
+			imageSequence.header( fs.realpathSync(config.video.header),Math.floor(config.video.headerDuration*config.video.framerate));
+		}
+		if( config.video.footer && config.video.footerDuration ){ 
+			imageSequence.footer( fs.realpathSync(config.video.header),Math.floor(config.video.footerDuration*config.video.framerate));
+		}
+
 		var sequenceFilename = imageSequence.save();
 		var outputFile = generateVideoFileName(parentDir);
 
@@ -160,6 +170,7 @@ module.exports = function(config){
 		];
 		var ffmpegCmd = config.video.ffmpegBinary;
 		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs, { stdio : 'inherit'});
+
 
 		if(child.status>0){
 			process.exit(1);
@@ -231,6 +242,8 @@ module.exports = function(config){
 		else {
 			var videoUrl = config.youTubeOptions.shortUrl.format(videoData.id);
 			console.log('video uploaded '+videoUrl);
+			config.serialPrinter.footerText = currentId;
+		
 			PrintQRCode.printUrl(videoUrl,config.serialPrinter, onPrintingComplete);
 		}
 
@@ -274,6 +287,10 @@ module.exports = function(config){
 
 	var traceOrInspect = function(m){ 
 		return (typeof(m)=='string')?m:util.inspect(m)+' '; 
+	}
+
+	var generateId = function(){
+		return Math.floor(Date.now()/1000).toString(36).toUpperCase();
 	}
 
 	var exports = {
