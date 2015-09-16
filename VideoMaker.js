@@ -25,6 +25,7 @@ module.exports = function(config){
     var isProcessingVideo = false;
 	var tasks;
 	var currentId;
+	var currentDir;
 	
 	OAuthHelper.options({
 		scope:['https://www.googleapis.com/auth/youtube',
@@ -135,6 +136,7 @@ module.exports = function(config){
 
 		isProcessingVideo = true;
 		currentId = generateId();
+		currentDir = parentDir;
 		
 		files.sort();
 		var filePaths = files.map(function(file){ return path.join(parentDir,file) });
@@ -243,7 +245,7 @@ module.exports = function(config){
 			var videoUrl = config.youTubeOptions.shortUrl.format(videoData.id);
 			console.log('video uploaded '+videoUrl);
 			config.serialPrinter.footerText = currentId;
-		
+			if( currentDir ) fs.writeFileSync(path.join(currentDir,currentId+".txt"),videoUrl);
 			PrintQRCode.printUrl(videoUrl,config.serialPrinter, onPrintingComplete);
 		}
 

@@ -87,6 +87,7 @@ exports.authenticate = function(config, authCompleteCallback){
 
   		});
   		var server = app.listen(config.youTubeOptions.redirectPort, function(){
+  			server.setTimeout(1000);
 		  	open(url);
   		});
 

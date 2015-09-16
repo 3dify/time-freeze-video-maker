@@ -4,7 +4,7 @@ var fs = require('fs');
 module.exports = function(files,config){
 	
 	var filename = path.join(config.tmpPath,"ImageSequence."+Date.now()+'.txt');
-	var format = function(image){
+	var format = function(file){
 		return 'file \''+file+'\'';
 	};
 
@@ -21,13 +21,13 @@ module.exports = function(files,config){
 		header : function(image,frames){
 			format(image);
 			for( var i=0;i<frames;i++ ){
-				output=image+'\n'+output;
+				output=format(image)+'\n'+output;
 			}
 		},
 		footer : function(image,frames){
 			format(image);
 			for( var i=0;i<frames;i++ ){
-				output=output+'\n'+image;
+				output=output+'\n'+format(image);
 			}
 
 		},
