@@ -148,7 +148,7 @@ module.exports = function(config){
 			imageSequence.header( fs.realpathSync(config.video.header),Math.floor(config.video.headerDuration*config.video.framerate));
 		}
 		if( config.video.footer && config.video.footerDuration ){ 
-			imageSequence.footer( fs.realpathSync(config.video.header),Math.floor(config.video.footerDuration*config.video.framerate));
+			imageSequence.footer( fs.realpathSync(config.video.footer),Math.floor(config.video.footerDuration*config.video.framerate));
 		}
 
 		var sequenceFilename = imageSequence.save();
