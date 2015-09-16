@@ -23,7 +23,7 @@ module.exports = {
 	'queueAutoSavePeriod':20000,
 	'queueFile':'queue.json',
 	'serialPrinter': {
-		'device':'/dev/tty.usbserial-AD0266G4',
+		'device':'/dev/cu.usbserial-AL00FQG7',
 		'baudrate':9600,
 		'width':384,
 		'heatingTime':200,
@@ -31,6 +31,7 @@ module.exports = {
 		'maxPrintingDots':4,
 		'topLineFeed':1,
 		'bottomLineFeed':4,
+		'closeDelay':1000,
 		'logo':'logo.png'
 	}
 };

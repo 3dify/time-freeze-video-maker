@@ -1,6 +1,7 @@
 var Printer = require('thermalprinter');
 var qr = require('qr-image');
 var fs = require('fs');
+require('stringformat').extendString();
 var serialport = require('serialport');
 var yargs = require('yargs');
 
@@ -27,6 +28,14 @@ var resizeImage = function(size,data){
     data.size = size;
 }
 
+var listSerialDevices = function(){
+	serialport.list(function (err, ports) {
+		ports.forEach(function(port) {
+			console.log("Serial device: {0} {1} {2}".format(port.comName,port.pnpId,port.manufacturer));
+		});
+	});
+}
+
 module.exports = {
 	printUrl : function(url,config,callback){
 
@@ -40,7 +49,8 @@ module.exports = {
 				'heatingInterval':2,
 				'maxPrintingDots':4,
 				'topLineFeed':1,
-				'bottomLineFeed':4
+				'bottomLineFeed':4,
+				'closeDelay':1000
 			}
 		}
 		
@@ -86,19 +96,23 @@ module.exports = {
 		            .printImage(pngFile)
 		            .lineFeed(config.bottomLineFeed)
 		            .print(function() {
-		            	serialPort.flush(function(error){
+		            	/* manual delay to fix bug in printing flush issue */
+		            	setTimeout(function(error){
 		            		if(error) console.error(error);
 			                serialPort.close(function(){
 				                fs.unlinkSync(pngFile);
 						       	if( callback ) callback(null);			                	
 			                });
-		            	});
+		            	},config.closeDelay);
 		            });
 		    });
 		}).on('error',function(error){
 			fs.unlinkSync(pngFile);
 			if( callback ) callback(error);
-			else console.error(error);
+			else { 
+				console.error(error);
+				listSerialDevices();
+			}
 		});
 		
 	}
