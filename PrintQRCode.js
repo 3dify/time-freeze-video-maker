@@ -86,9 +86,13 @@ module.exports = {
 		            .printImage(pngFile)
 		            .lineFeed(config.bottomLineFeed)
 		            .print(function() {
-		                serialPort.close();
-		                fs.unlinkSync(pngFile);
-				       	if( callback ) callback(null);
+		            	serialport.flush(function(error){
+		            		if(error) console.error(error);
+			                serialPort.close(function(){
+				                fs.unlinkSync(pngFile);
+						       	if( callback ) callback(null);			                	
+			                });
+		            	});
 		            });
 		    });
 		}).on('error',function(error){
