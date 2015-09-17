@@ -9,8 +9,8 @@ module.exports = {
 		'loop':8,
 		'bitrate':'8000k',
 		'ffmpegBinary':'ffmpeg',
-		'header':'revolve_scaled.jpg',
-		'footer':'footer.jpg',
+		'header':'revolve_scaled_yuv444p.jpg',
+		'footer':'footer_yuv444p.jpg',
 		'headerDuration':3,
 		'footerDuration':3
 	},
