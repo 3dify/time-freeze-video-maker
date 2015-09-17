@@ -39,6 +39,13 @@ Make .config.js by copying private-config-template.js and filling in the details
     5 - G
 ```
 
+### Converting header and footer images
+
+Resize to 2400x1560 and convert to yuv444p colorspace
+```bash
+ffmpeg -i revolve_scaled.jpg -vf scale=2400:1560 -pix_fmt yuv444p revolve_scaled_yuv444p.jpg
+```
+
 ## Todo
 * Integrate stablization code
 * Add option for insertion of splash header and info footer to video.
