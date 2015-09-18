@@ -12,7 +12,8 @@ module.exports = {
 		'header':'revolve_scaled_yuv444p.jpg',
 		'footer':'footer_yuv444p.jpg',
 		'headerDuration':3,
-		'footerDuration':3
+		'footerDuration':3,
+		'firstFrameDuration':2
 	},
 	'youTubeOptions':{
 		'shortUrl':'https://youtu.be/{0}',

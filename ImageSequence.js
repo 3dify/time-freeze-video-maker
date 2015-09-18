@@ -9,13 +9,20 @@ module.exports = function(files,config){
 	};
 
 	var output = files.map(format).join('\n');
+	var numFirstFrames = Math.floor( ( config.firstFrameDuration || 0 ) * config.framerate );
 
 	var loops = config.video.loop || 1;
 	var loopedOutput = output;
 	for( var i=1;i<loops;i++ ){
 		loopedOutput+='\n'+output;
 	}
+
 	output = loopedOutput;
+
+	for(int i=1;i<numFirstFrames;i++){
+		output=format(files[0])+'\n'+output;
+	}
+
 
 	return {
 		header : function(image,frames){
