@@ -19,7 +19,7 @@ module.exports = function(files,config){
 
 	output = loopedOutput;
 
-	for(int i=1;i<numFirstFrames;i++){
+	for(var i=1;i<numFirstFrames;i++){
 		output=format(files[0])+'\n'+output;
 	}
 
