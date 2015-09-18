@@ -9,7 +9,7 @@ module.exports = function(files,config){
 	};
 
 	var output = files.map(format).join('\n');
-	var numFirstFrames = Math.floor( ( config.firstFrameDuration || 0 ) * config.framerate );
+	var numFirstFrames = Math.floor( ( config.video.firstFrameDuration || 0 ) * config.video.framerate );
 
 	var loops = config.video.loop || 1;
 	var loopedOutput = output;
