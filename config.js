@@ -2,15 +2,15 @@ module.exports = {
 	'privateConfig':'./.config.js',
 	'tmpPath':'/tmp',
 	'video':{
-		'numCameras':50,
-		'framerate':18,
+		'numCameras':40,
+		'framerate':14,
 		'width':1620,
 		'height':1080,
-		'loop':8,
-		'bitrate':'8000k',
+		'loop':4,
+		'bitrate':'24000k',
 		'ffmpegBinary':'ffmpeg',
-		'header':'revolve_scaled_yuv444p.jpg',
-		'footer':'footer_yuv444p.jpg',
+		'header':'revolve_scaled_yuvj422p-2.jpg',
+		'footer':'footer_yuvj422p-2.jpg',
 		'headerDuration':3,
 		'footerDuration':3,
 		'firstFrameDuration':2
@@ -19,8 +19,8 @@ module.exports = {
 		'shortUrl':'https://youtu.be/{0}',
 		'redirectPort': 5000,
 		'redirectUrlPath':'/oauth2callback',
-		'title': 'eventname {dir} {time} {date}', // availbile format keys {dir}, {time}, {date}
-		'tags': ['3dify'],
+		'title': 'The Costume Games {dir} {time} {date}', // availbile format keys {dir}, {time}, {date}
+		'tags': ['3dify','revolve','revolvebrighton'],
 		'description':''
 	},
 	'basedir':__dirname,
