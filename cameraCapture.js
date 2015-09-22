@@ -5,6 +5,7 @@ var fs = require('fs');
 var path = require('path');
 var colors = require('colors');
 var yargs = require('yargs');
+var Player = require('player');
 var config = require('./config');
 require('stringformat').extendString();
 var play = require('play');
@@ -24,6 +25,8 @@ if( yargs.argv._.length != 1 ){
 
 var command = "gphoto2";
 var targetDir = fs.realpathSync(yargs.argv._[0]);
+var processes = []; 
+var shutdown = false;
 
 var captureTethered = function(options){
 	console.log("captureTethered",options);
@@ -55,7 +58,8 @@ var captureTethered = function(options){
 				rejected(code);
 			}
 			else resolved(options);
-		})
+		});
+
 	});
 
 	return processCompletePromise;
@@ -110,8 +114,10 @@ var getBatchDir = function(){
 }
 
 var tetherAllCameras = function(entries){	
-	play.sound('finished.wav');
 	var batchDir;
+	if(shutdown) return;
+
+	new Player('finished.mp3').play();
 	while(fs.existsSync(batchDir = getBatchDir())){
 		batchNumber++;
 	}
@@ -134,8 +140,15 @@ else {
 			throw error;
 			process.exit(1);
 		}
+		processes = new Array(entries.length);
 		tetherAllCameras(entries.map(getCameraIndex).sort(sortByIndex));
 	});
 }
 
+process.on('SIGINT', function () {
+	shutdown = true;
+	processes.forEach(function(p){
+		if( p ) p.kill();
+	}); 	
+});
 

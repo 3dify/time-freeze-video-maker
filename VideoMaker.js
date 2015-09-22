@@ -4,6 +4,7 @@ var util = require('util');
 var child_process = require('child_process');
 var lodash = require('lodash');
 var google = require('googleapis');
+var Player = require('player');
 
 require('stringformat').extendString();
 
