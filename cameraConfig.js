@@ -1,0 +1,25 @@
+module.exports = {
+'/main/capturesettings/dlighting':null,
+'/main/capturesettings/moviequality':null,
+'/main/capturesettings/longexpnr':null,
+'/main/capturesettings/assistlight':null,
+'/main/capturesettings/exposurecompensation':
+'/main/capturesettings/flashmode':null,
+'/main/capturesettings/f-number':null,
+'/main/capturesettings/imagequality':null,
+'/main/capturesettings/focallength':null,
+'/main/capturesettings/focusmode':null,
+'/main/capturesettings/focusmode2':null,
+'/main/capturesettings/effectmode':null,
+'/main/capturesettings/expprogram':null,
+'/main/capturesettings/capturemode':null,
+'/main/capturesettings/focusmetermode':null,
+'/main/capturesettings/exposuremetermode':null,
+'/main/capturesettings/shutterspeed':null,
+'/main/capturesettings/shutterspeed2':null,
+'/main/capturesettings/liveviewafmode':null,
+'/main/capturesettings/nocfcardrelease':null,
+'/main/capturesettings/burstnumber':null,
+'/main/capturesettings/whitebiaspresetno':null,
+'/main/capturesettings/applicationmode':null
+};
