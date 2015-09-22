@@ -59,6 +59,7 @@ var captureTethered = function(options){
 			}
 			else resolved(options);
 		});
+		processes[options.index] = p;
 
 	});
 
