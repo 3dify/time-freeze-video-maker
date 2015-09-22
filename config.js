@@ -15,6 +15,11 @@ module.exports = {
 		'footerDuration':3,
 		'firstFrameDuration':2
 	},
+	'cameraConfig':'cameraConfig.js',
+	'cameraOrder':[
+		2086639,
+		2037656
+	],
 	'youTubeOptions':{
 		'shortUrl':'https://youtu.be/{0}',
 		'redirectPort': 5000,
