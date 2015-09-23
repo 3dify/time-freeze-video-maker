@@ -33,9 +33,13 @@ var processes = [];
 var shutdown = false;
 
 var captureTethered = function(options){
-	if( options.process ) options.process.kill();
+	if( options.process ) {
+		options.process.removeAllListeners();
+		options.process.stdout.removeAllListeners();
+		options.process.kill();
+	}
 
-	console.log("captureTethered",options);
+	console.log("captureTethered port={0} index={1}".format(options.port,options.index));
 	var processCompletePromise = new Promise(function(resolved,rejected){
 		var port = options.port;
 		var index = options.index.toString();
@@ -62,9 +66,11 @@ var captureTethered = function(options){
 			}
 			//console.log(port,d.toString().grey);
 		});
+		/*
 		p.stderr.on('data',function(d){
 			//console.log(port,d.toString().yellow);
 		});
+		*/
 		p.on('close',function(code, signal){
 			if( code > 0 ){ 
 				if( shutdown ) return;
