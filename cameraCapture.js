@@ -5,7 +5,6 @@ var fs = require('fs');
 var path = require('path');
 var colors = require('colors');
 var yargs = require('yargs');
-var Player = require('player');
 var config = require('./config');
 require('stringformat').extendString();
 var batchNumber = 0;
@@ -130,6 +129,7 @@ var tetherAllCameras = function(entries){
 
 	//player.play();
 
+	console.log("Ready to capture".green);
 	while(fs.existsSync(batchDir = getBatchDir())){
 		batchNumber++;
 	}
