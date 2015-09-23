@@ -50,15 +50,15 @@ var captureTethered = function(options){
 		];
 		var p = cp.spawn(command,args, {cwd : getBatchDir(), stdio:['ignore','pipe','pipe'] });
 		p.stdout.on('data',function(d){
-			if(d.toString().indexOf("Saving file as")>=0){
+			if((d||"").toString().indexOf("Saving file as")>=0){
 				console.log("{0} captured".format(index));
 				//setTimeout(p.kill.bind(p),1000);
-				resolved(options.process);
+				resolved(options);
 
 			}
 			else {
 				console.log("Unknown message from {0}".format(index));
-				console.log(d.toString().grey);
+				console.log((d||"").toString().grey);
 			}
 			//console.log(port,d.toString().grey);
 		});
@@ -142,8 +142,9 @@ var tetherAllCameras = function(entries){
 	}
 	console.log("tetherAllCameras "+batchDir);
 	fs.mkdirSync(batchDir);
-	if( entries.length > 0 ) Promise.all( entries.map(captureTethered) ).then(tetherAllCameras).catch(function(rejects){
-		exitWithError("gphoto2 exited with bad status");
+	if( entries.length > 0 ) Promise.all( entries.map(captureTethered) ).then(tetherAllCameras).catch(function(reason){
+		if( reason instanceof Error ) throw reason;
+		if( typeof(reason) === 'number' ) exitWithError("gphoto2 exited with bad status {0}".format(reason));
 	});
 	batchNumber++;
 }
