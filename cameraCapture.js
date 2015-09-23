@@ -8,8 +8,9 @@ var yargs = require('yargs');
 var Player = require('player');
 var config = require('./config');
 require('stringformat').extendString();
-var play = require('play');
 var batchNumber = 0;
+var player = new Player('finished.mp3');
+
 
 var exitWithError = function(msg){
 	process.stderr.write(msg.red+"\n");
@@ -24,7 +25,12 @@ if( yargs.argv._.length != 1 ){
 }
 
 var command = "gphoto2";
-var targetDir = fs.realpathSync(yargs.argv._[0]);
+try {
+	var targetDir = fs.realpathSync(yargs.argv._[0]);
+}
+catch(e){
+	exitWithError("Directory not found");
+}
 var processes = []; 
 var shutdown = false;
 
@@ -78,7 +84,7 @@ var getCameraIndex = function(port){
 
 	var serial=0;
 	try {
-		serial = parseInt( stdout.toString().match(/Current: ([0-9]+)/)[1] );
+		serial = parseInt( stdout.toString().match(/Current: ([0-9]+)/)[1],10 );
 	}
 	catch(e){
 		throw new Error('Unexpected output from gphoto, bad format in serialnumber');
@@ -93,7 +99,10 @@ var findAllCameras = function(cb){
 	var args = ["--auto-detect"];
 
 	cp.exec(command +" "+ args.join(" "), function(err, stdout, stderr){
-		var entries=stdout.toString().match(/usb:[0-9]+,[0-9]+/g);
+		var entries=stdout.toString().match(/usb:[0-9]+,[0-9]+/g) || [];
+		if(err.code==127){
+			exitWithError("Command {0} not found".format(command))
+		}
 		var numCamerasFound = entries.length;
 		var numCamerasExpected = config.video.numCameras;
 		if( numCamerasExpected == numCamerasFound ){
@@ -118,13 +127,14 @@ var tetherAllCameras = function(entries){
 	var batchDir;
 	if(shutdown) return;
 
-	new Player('finished.mp3').play();
+	//player.play();
+
 	while(fs.existsSync(batchDir = getBatchDir())){
 		batchNumber++;
 	}
 	console.log("tetherAllCameras "+batchDir);
 	fs.mkdirSync(batchDir);
-	Promise.all( entries.map(captureTethered) ).then(tetherAllCameras).catch(function(rejects){
+	if( entries.length > 0 ) Promise.all( entries.map(captureTethered) ).then(tetherAllCameras).catch(function(rejects){
 		exitWithError("gphoto2 exited with bad status");
 	});
 	batchNumber++;
