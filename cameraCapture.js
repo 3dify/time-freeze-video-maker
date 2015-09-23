@@ -100,7 +100,7 @@ var findAllCameras = function(cb){
 
 	cp.exec(command +" "+ args.join(" "), function(err, stdout, stderr){
 		var entries=stdout.toString().match(/usb:[0-9]+,[0-9]+/g) || [];
-		if(err.code==127){
+		if(err&&err.code==127){
 			exitWithError("Command {0} not found".format(command))
 		}
 		var numCamerasFound = entries.length;
