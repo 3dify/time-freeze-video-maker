@@ -8,7 +8,6 @@ var yargs = require('yargs');
 var config = require('./config');
 require('stringformat').extendString();
 var batchNumber = 0;
-var player = new Player('finished.mp3');
 
 
 var exitWithError = function(msg){
@@ -34,6 +33,8 @@ var processes = [];
 var shutdown = false;
 
 var captureTethered = function(options){
+	if( options.process ) options.process.kill();
+
 	console.log("captureTethered",options);
 	var processCompletePromise = new Promise(function(resolved,rejected){
 		var port = options.port;
@@ -50,7 +51,14 @@ var captureTethered = function(options){
 		var p = cp.spawn(command,args, {cwd : getBatchDir(), stdio:['ignore','pipe','pipe'] });
 		p.stdout.on('data',function(d){
 			if(d.toString().indexOf("Saving file as")>=0){
-				setTimeout(p.kill.bind(p),1000);
+				console.log("{0} captured".format(index));
+				//setTimeout(p.kill.bind(p),1000);
+				resolved(options.process);
+
+			}
+			else {
+				console.log("Unknown message from {0}".format(index));
+				console.log(d.toString().grey);
 			}
 			//console.log(port,d.toString().grey);
 		});
@@ -63,9 +71,8 @@ var captureTethered = function(options){
 				console.log("gphoto2 ended unexpectedly for camera {0}".format(index).yellow);				
 				rejected(code);
 			}
-			else resolved(options);
 		});
-		processes[options.index] = p;
+		options.process = processes[options.index] = p;
 
 	});
 
@@ -91,6 +98,7 @@ var getCameraIndex = function(port){
 		process.exit(1);
 	}
 	index = ordering.indexOf(serial);
+	console.log(index,serial);
 
 	return {port:port,index:parseInt(index)}
 }
@@ -127,7 +135,6 @@ var tetherAllCameras = function(entries){
 	var batchDir;
 	if(shutdown) return;
 
-	//player.play();
 
 	console.log("Ready to capture".green);
 	while(fs.existsSync(batchDir = getBatchDir())){
