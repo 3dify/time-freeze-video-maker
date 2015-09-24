@@ -299,6 +299,7 @@ module.exports = function(config){
 		watch : watch,
 		process : processDir,
 		upload : upload,
+		automaticUpload : automaticUpload
 		exitWithError : exitWithError,
 		warning : warning,
 		notice : notice
