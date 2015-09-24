@@ -17,10 +17,11 @@ module.exports = {
 	},
 	'cameraConfig':'cameraConfig.js',
 	'cameraOrder':[
+	2091320,
 	2051847,
 	2091225,
 	2012169,
-	2075963,
+	2075935,
 	2051626,
 	2075359,
 	2084409,
@@ -55,8 +56,7 @@ module.exports = {
 	2063062,
 	2084464,
 	2084539,
-	2084521,
-	2091320
+	2084521
 	],
 	'youTubeOptions':{
 		'shortUrl':'https://youtu.be/{0}',
