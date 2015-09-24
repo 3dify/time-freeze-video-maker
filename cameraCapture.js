@@ -4,7 +4,7 @@ var cp = require('child_process');
 var fs = require('fs');
 var path = require('path');
 var colors = require('colors');
-var yargs = require('yargs');
+var yargs = require('yargs').boolean('loadconfig');
 var config = require('./config');
 require('stringformat').extendString();
 var batchNumber = 0;
