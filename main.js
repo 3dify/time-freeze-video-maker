@@ -15,6 +15,10 @@ if( fs.existsSync(config.privateConfig) ){
 var cwd = process.cwd();
 var videoMaker = VideoMaker(config);
 
+if( args.n ){
+	videoMaker.automaticUpload(false);
+}
+
 if( args.w && args._.length == 0 ){
 	videoMaker.watch(args.w);
 }
@@ -34,7 +38,7 @@ else{
 
 	videoMaker.exitWithError([
 		"missing arguments",
-		"usage: main.js -w {watch_dir}       - watches watch_dir for changes, processes and subdirs",
+		"usage: main.js -w [-n] {watch_dir}  - watches watch_dir for changes, processes and subdirs",
 		"       main.js {process_dir}        - processes process_dir and exits",
 		"       main.js -c                   - displays current config information",
 		"       main.js -u {video_file}      - uploads video_file to youtube",
