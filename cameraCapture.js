@@ -18,19 +18,38 @@ var exitWithError = function(msg){
 if( yargs.argv._.length != 1 ){
 	exitWithError([
 		'Incorrect arguments',
+		'./cameraCapture.js --saveconfig {port|index} {target_file}',
+		'./cameraCapture.js --loadconfig {target_file}',
 		'./cameraCapture.js {target_dir}'
 	].join('\n'));
 }
 
 var command = "gphoto2";
-try {
-	var targetDir = fs.realpathSync(yargs.argv._[0]);
-}
-catch(e){
-	exitWithError("Directory not found");
-}
 var processes = []; 
 var shutdown = false;
+
+// Implement bash string escaping.
+var safePattern =    /^[a-z0-9_\/\-.,?:@#%^+=\[\]]*$/i;
+var safeishPattern = /^[a-z0-9_\/\-.,?:@#%^+=\[\]{}|&()<>; *']*$/i;
+function bashEscape(arg) {
+  // These don't need quoting
+  if (safePattern.test(arg)) return arg;
+
+  // These are fine wrapped in double quotes using weak escaping.
+  if (safeishPattern.test(arg)) return '"' + arg + '"';
+
+  // Otherwise use strong escaping with single quotes
+  return "'" + arg.replace(/'+/g, function (val) {
+    // But we need to interpolate single quotes efficiently
+
+    // One or two can simply be '\'' -> ' or '\'\'' -> ''
+    if (val.length < 3) return "'" + val.replace(/'/g, "\\'") + "'";
+
+    // But more in a row, it's better to wrap in double quotes '"'''''"' -> '''''
+    return "'\"" + val + "\"'";
+
+  }) + "'";
+}
 
 var captureTethered = function(options){
 	if( options.process ) {
@@ -156,7 +175,7 @@ var tetherAllCameras = function(entries){
 }
 
 if(yargs.argv.saveconfig){
-	var id = yargs.argv.saveconfig;
+	var id = yargs.argv.saveconfig.toString();
 	var file = yargs.argv._[0];
 
 	if( fs.existsSync(file) ){
@@ -166,28 +185,31 @@ if(yargs.argv.saveconfig){
 	findAllCameras(function(error,entries){
 		var port;
 		var index;
-		if( id.match(/$usb/) ){
+		if( id.match(/^usb/) ){
 			port = id;
 		}
 		else {
 			index = parseInt(id,10);
 		}
 
-		var cameraInfo = entries.map(getCameraIndex).filter(function(entry){ return entry.port===port || entry.index===index });
+		var cameraInfo = entries.map(getCameraIndex).filter(function(entry){ return entry.port===port || entry.index===index })[0];
+		
 		var args =[
 			'--port', cameraInfo.port,
 			'--list-config'
 		];
 		var stdout = cp.execSync(command +" "+ args.join(" ") );
-		settings = stdout.match(/[\/a-z0-9]+capturesettings[\/a-z0-9]+/g) || [];
+		settings = stdout.toString().match(/[\/a-z0-9]+capturesettings[\/\-A-Za-z0-9]+/g) || [];
 		args = [
 					'--port', cameraInfo.port,
 		];
 		args = args.concat( settings.map(function(setting){
 			return '--get-config '+setting;
 		}));
-		stdout = cp.execSync(command+" "+args.join(" "));
-		var settings = stdout.match(/Current: [.0-9a-z]+/g).map(function(match,i){
+		stdout = cp.execSync(command+" "+args.join(" ")).toString();
+		//Couldn't find value character range [\/.0-9A-Za-z\-\ ]
+		var settings = stdout.match(/Current: .+$/mg).map(function(match,i){
+			match = match.toString();
 			return { key:settings[i], value:match.replace(/Current: /,'') };
 		});
 		fs.writeFileSync(file,JSON.stringify(settings));
@@ -217,12 +239,19 @@ else if(yargs.argv.loadconfig){
 			throw error;
 		}
 		entries.forEach(function(port){
-			var args = ['--port',port].concat(settings.map(function(entry){ return "--set-config "+entry.key+"="+entry.value; }));
+			var args = ['--port',port].concat(settings.map(function(entry){ return "--set-config "+entry.key+"="+bashEscape(entry.value); }));
 			cp.execSync(command+" "+args.join(' '));
 		});
 	});
 }
 else {
+	try {
+	var targetDir = fs.realpathSync(yargs.argv._[0]);
+	}
+	catch(e){
+		exitWithError("Directory not found");
+	}
+
 	findAllCameras(function(error,entries){
 		if(error) {
 			throw error;
