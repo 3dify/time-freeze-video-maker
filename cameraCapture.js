@@ -141,9 +141,71 @@ var tetherAllCameras = function(entries){
 	batchNumber++;
 }
 
-if(yargs.argv.getSettings){
+if(yargs.argv.saveconfig){
+	var id = yargs.argv.saveconfig;
+	var file = yargs.argv._[0];
+
+	if( fs.existsSync(file) ){
+		exitWithError("File {0} already exists".format(file));
+	}
+
+	findAllCameras(function(error,entries){
+		var port;
+		var index;
+		if( id.match(/$usb/) ){
+			port = id;
+		}
+		else {
+			index = parseInt(id,10);
+		}
+
+		var cameraInfo = entries.map(getCameraIndex).filter(function(entry){ return entry.port===port || entry.index===index });
+		var args =[
+			'--port', cameraInfo.port,
+			'--list-config'
+		];
+		var stdout = cp.execSync(command +" "+ args.join(" ") );
+		settings = stdout.match(/[\/a-z0-9]+capturesettings[\/a-z0-9]+/g) || [];
+		args = [
+					'--port', cameraInfo.port,
+		];
+		args = args.concat( settings.map(function(setting){
+			return '--get-config '+setting;
+		}));
+		stdout = cp.execSync(command+" "+args.join(" "));
+		var settings = stdout.match(/Current: [.0-9a-z]+/g).map(function(match,i){
+			return { key:settings[i], value:match.replace(/Current: /,'') };
+		});
+		fs.writeFileSync(file,JSON.stringify(settings));
+
+	});
+}
+else if(yargs.argv.loadconfig){
+	var file = yargs.argv._[0];
+
+	if( !fs.existsSync(file) ){
+		exitWithError("File {0} not found".format(file));
+	}
+	settings = fs.readFileSync(file);
+	try {
+		settings = JSON.parse(settings);
+		if( !( settings instanceof Array ) ){
+			throw new TypeError("Array expected");
+		}
+	}
+	catch(e){
+		exitWithError("Invalid settings data in file {0}".format(file));
+	}
+
 	findAllCameras(function(error,entries){
 
+		if( error ){
+			throw error;
+		}
+		entries.forEach(function(port){
+			var args = ['--port',port].concat(settings.map(function(entry){ return "--set-config "+entry.key+"="+entry.value; }));
+			cp.execSync(command+" "+args.join(' '));
+		});
 	});
 }
 else {
