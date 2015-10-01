@@ -93,7 +93,7 @@ var captureTethered = function(options){
 		});
 		
 		p.on('close',function(code, signal){
-			if( code > 0 ){ 
+			if( code != 0 ){ 
 				if( shutdown ) return;
 				console.log("gphoto2 ended unexpectedly for camera {0}".format(index).yellow);				
 				rejected(code);
