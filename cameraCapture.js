@@ -55,7 +55,7 @@ var captureTethered = function(options){
 	if( options.process ) {
 		options.process.removeAllListeners();
 		options.process.stdout.removeAllListeners();
-		options.process.kill();
+		if( options.process.connected ) options.process.kill();
 	}
 
 	console.log("captureTethered port={0} index={1}".format(options.port,options.index));
@@ -66,12 +66,14 @@ var captureTethered = function(options){
 		console.log("Camera found at port {0}".format(port.blue));
 		var args = [
 			'--port', port,
-			'--capture-tethered',
+			'--wait-event', 1,
 			'--force-overwrite',
 			'--no-keep',
 			'--filename',index+'.jpg'
 		];
 		var p = cp.spawn(command,args, {cwd : getBatchDir(), stdio:['ignore','pipe','pipe'] });
+
+		/*
 		p.stdout.on('data',function(d){
 			if((d||"").toString().indexOf("Saving file as")>=0){
 				console.log("{0} captured".format(index));
@@ -83,18 +85,22 @@ var captureTethered = function(options){
 				console.log("Unknown message from {0}".format(index));
 				console.log((d||"").toString().grey);
 			}
-			//console.log(port,d.toString().grey);
-		});
-		/*
-		p.stderr.on('data',function(d){
-			//console.log(port,d.toString().yellow);
 		});
 		*/
+		
+		p.stderr.on('data',function(d){
+			console.log(port,d.toString().yellow);
+		});
+		
 		p.on('close',function(code, signal){
 			if( code > 0 ){ 
 				if( shutdown ) return;
 				console.log("gphoto2 ended unexpectedly for camera {0}".format(index).yellow);				
 				rejected(code);
+
+			}
+			else {
+				resolved(options);
 			}
 		});
 		options.process = processes[options.index] = p;
