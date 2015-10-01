@@ -244,8 +244,11 @@ else if(yargs.argv.loadconfig){
 		if( error ){
 			throw error;
 		}
-		entries.forEach(function(port){
+		entries.map(getCameraIndex).forEach(function(options){
+			var port = options.port;
+			var index = options.index;
 			var args = ['--port',port].concat(settings.map(function(entry){ return "--set-config "+entry.key+"="+bashEscape(entry.value); }));
+			console.log("Setting config options for {0}".format(index).blue);
 			cp.execSync(command+" "+args.join(' '));
 		});
 	});
