@@ -66,7 +66,7 @@ var captureTethered = function(options){
 		console.log("Camera found at port {0}".format(port.blue));
 		var args = [
 			'--port', port,
-			'--wait-event', 1,
+			'--wait-event-and-download=FILEADDED',
 			'--force-overwrite',
 			'--no-keep',
 			'--filename',index+'.jpg'
@@ -88,6 +88,10 @@ var captureTethered = function(options){
 		});
 		*/
 		
+		p.stdout.on('data',function(d){
+			console.log(d.toString());
+		});
+
 		p.stderr.on('data',function(d){
 			console.log(port,d.toString().yellow);
 		});
