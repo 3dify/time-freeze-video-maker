@@ -2,7 +2,7 @@ module.exports = {
 	'privateConfig':'./.config.js',
 	'tmpPath':'/tmp',
 	'video':{
-		'numCameras':40,
+		'numCameras':48,
 		'framerate':14,
 		'width':1620,
 		'height':1080,
@@ -17,7 +17,7 @@ module.exports = {
 	},
 	'cameraConfig':'cameraConfig.js',
 	'cameraOrder':[
-	2091320,
+	2091320, //start count at 0
 	2051847,
 	2091225,
 	2012169,
@@ -56,7 +56,18 @@ module.exports = {
 	2063062,
 	2084464,
 	2084539,
-	2084521
+	2084521,
+	6224182, //CAMERA 40
+	6224161, 
+	6230311,
+	6224164,
+	6230387,
+	6230321,
+	6230385,
+	6224157,
+	6224184,
+	6230386,
+	6230387	
 	],
 	'youTubeOptions':{
 		'shortUrl':'https://youtu.be/{0}',
@@ -71,7 +82,7 @@ module.exports = {
 	'queueAutoSavePeriod':20000,
 	'queueFile':'queue.json',
 	'serialPrinter': {
-		'device':'/dev/cu.usbserial-AL00FQG7',
+		'device':'/dev/cu.usbserial-FTB6SPL3',
 		'baudrate':9600,
 		'width':384,
 		'heatingTime':200,
