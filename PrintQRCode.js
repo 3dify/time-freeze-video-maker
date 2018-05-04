@@ -1,7 +1,7 @@
 var Printer = require('thermalprinter');
 var qr = require('qr-image');
 var fs = require('fs');
-var serialport = require('serialport');
+var SerialPort = require('serialport');
 var yargs = require('yargs');
 
 require('string-format').extend(String.prototype,{});
@@ -30,7 +30,7 @@ var resizeImage = function(size,data){
 }
 
 var listSerialDevices = function(){
-	serialport.list(function (err, ports) {
+	SerialPort.list(function (err, ports) {
 		ports.forEach(function(port) {
 			console.log("Serial device: {0} {1} {2}".format(port.comName,port.pnpId,port.manufacturer));
 		});
@@ -43,7 +43,7 @@ module.exports = {
 		if( config == null ){
 			config = {
 				'device':'/dev/tty.usbserial-AD0266G4',
-				'baudrate':9600,
+				'baudRate':9600,
 				'width':384,
 				'logo':'logo.png',
 				'heatingTime':200,
@@ -67,7 +67,7 @@ module.exports = {
 
 		fs.writeFileSync(pngFile,qrPng);
 		
-		var serialPort = new serialport.SerialPort(config.device, {
+		var serialPort = new SerialPort(config.device, {
         	baudrate: config.baudrate
 		});
 

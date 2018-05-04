@@ -36,7 +36,7 @@ module.exports = function(config){
 		var options = {
 			from: config.email.from,
 			to: address,
-			subject: config.emailNotificationSubject.format(data),
+			subject: config.emailOptions.emailNotificationSubject.format(data),
 			html: emailTemplate.format(data),
 			attachments: attachments
 		}

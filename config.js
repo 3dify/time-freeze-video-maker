@@ -4,7 +4,7 @@ module.exports = {
 	'ffmpegBinary':'ffmpeg',
 	'video':[
 		{
-			'outputFileSuffix':'youTube',			
+			'outputFileSuffix':'-youTube',			
 			'postCreateTask':'youTube',
 			'framerate':14,
 			'width':1620,
@@ -19,15 +19,16 @@ module.exports = {
 			'ffmpegExtraSettings':[
 				'-profile:v', 'high',
 				'-pix_fmt', 'yuv420p',
-				'-level', '4.0'
+				'-level', '4.0'				
 			]
 		},
 		{
-			'outputFileSuffix':'attachment',			
+			'outputFileSuffix':'-attachment',			
 			'postCreateTask':'email',
 			'framerate':14,
 			'width':512,
 			'height':512,
+			'crop':[2000,2000],
 			'repeat':4,
 			'reciprocate': true,
 			'bitrate':'4000k',
@@ -112,7 +113,7 @@ module.exports = {
 	'queueFile':'queue.json',
 	'serialPrinter': {
 		'device':'/dev/cu.usbserial-FTB6SPL3',
-		'baudrate':9600,
+		'baudRate':9600,
 		'width':384,
 		'heatingTime':200,
 		'heatingInterval':2,

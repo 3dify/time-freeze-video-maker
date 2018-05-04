@@ -61,10 +61,7 @@ module.exports = function(config){
 
 	var processDir = function(dir){
 		notice("processing "+dir);
-		for(var vidConfig in config.video){
-			makeVideo(dir,vidConfig);
-		}
-
+		makeVideos(dir);
 	}
 
 	var exitWithError = function(){
@@ -122,14 +119,20 @@ module.exports = function(config){
 		var next = tasks.shift();
 		tasks.flush();
 		if( next ){
-			for(var vidConfig in config.video){
-				makeVideo(next.parentDir,vidConfig);
-			}
+			makeVideos(next.parentDir);
 		}
 	}
 
-	var makeVideo = function(parentDir,files,videoConfig){
-		parentDir	 = resolveDirectory(parentDir);
+	var makeVideos = function(parentDir){
+		config.video.forEach( makeVideo.bind(null,parentDir) );
+	}
+
+	var makeVideo = function(parentDir,videoConfig){
+		console.log("videoConfig=");
+		console.info(videoConfig);
+		var files;
+
+		parentDir = resolveDirectory(parentDir);
 
 		if( !files ){
 			files = fs.readdirSync(parentDir);
@@ -158,14 +161,15 @@ module.exports = function(config){
 		}
 
 		var sequenceFilename = imageSequence.save();
-		var outputFile = generateVideoFileName(parentDir);
+		var outputFile = generateVideoFileName(parentDir+videoConfig.outputFileSuffix);
 
 		//ffmpeg -r $FPS -f concat -i $1 -r $FPS -vf crop=2048:1536 -vf scale=1024:768 $2
 		var ffmpegArgs = [
 			'-r', videoConfig.framerate,
 			'-f', 'concat',
+			'-safe','0',
 			'-i', sequenceFilename,
-			'-r', videoConfig.framerate 
+			'-r', videoConfig.framerate,
 		];
 
 		if(videoConfig.crop instanceof Array){
@@ -185,6 +189,9 @@ module.exports = function(config){
 		ffmpegArgs.push('-y',outputFile);
 
 		var ffmpegCmd = config.ffmpegBinary;
+
+		console.info(ffmpegArgs);
+
 		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs, { stdio : 'inherit'});
 
 
@@ -222,7 +229,8 @@ module.exports = function(config){
 	}
 
 	var email = function(outputFile){
-		emailer.sendEmail("ian@3dify.co.uk",[{path:outputFile}]);
+		console.log("emailing");
+		emailer.sendEmail("ian@3dify.co.uk",{url:"http://test.com"},[{filename: "video.mp4",path:outputFile}]);
 	}
 
 	var onAuthComplete = function(outputFile){
