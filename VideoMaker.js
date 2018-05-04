@@ -4,8 +4,7 @@ var util = require('util');
 var child_process = require('child_process');
 var lodash = require('lodash');
 var google = require('googleapis');
-
-require('stringformat').extendString();
+var stringformat = require('string-format');
 
 var colors = require('colors');
 var ObjectQ = require('objectq').ObjectQ;
@@ -16,6 +15,8 @@ var ImageSequence = require('./ImageSequence');
 var OAuthHelper = require('./OAuthHelper');
 var PrintQRCode = require('./PrintQRCode');
 var EmailNotifications = require('./EmailNotifications');
+
+stringformat.extend(String.prototype,{});
 
 module.exports = function(config){
 
@@ -221,7 +222,7 @@ module.exports = function(config){
 	}
 
 	var email = function(outputFile){
-
+		emailer.sendEmail("ian@3dify.co.uk",[{path:outputFile}]);
 	}
 
 	var onAuthComplete = function(outputFile){

@@ -33,13 +33,13 @@ module.exports = function(config){
 		emailTemplate = contents.toString();
 	});
 
-	exports.sendEmail = function(address,data){
+	exports.sendEmail = function( address, data, attachments ){
 		var options = {
 			from: config.email.from,
 			to: address,
 			subject: config.emailNotificationSubject.format(data),
 			html: emailTemplate.format(data),
-			attachments: config.emailNotificationAttachments
+			attachments: attachments
 		}
 
 		transporter.sendMail(options,function(error,info){

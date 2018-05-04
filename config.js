@@ -102,6 +102,10 @@ module.exports = {
 		'tags': ['3dify','revolve','revolvebrighton'],
 		'description':''
 	},
+	'emailOptions':{
+		emailNotificationTemplate: 'html/email-template.html',
+		emailNotificationSubject: 'test video email'
+	},
 	'basedir':__dirname,
 	'processed':'processed.txt',
 	'queueAutoSavePeriod':20000,
