@@ -20,15 +20,14 @@ module.exports = function(config){
 
 	[
 		'emailNotificationTemplate',
-		'emailNotificationAttachments',
 		'emailNotificationSubject'
 	].forEach(function(option){
-		if( !config.hasOwnProperty(option) ){
+		if( !config.emailOptions.hasOwnProperty(option) ){
 			throw new Error("Missing config option: {0}".format(option));
 		}
 	});
 
-	fs.readFile(config.emailNotificationTemplate,'utf8',function(err,contents){
+	fs.readFile(config.emailOptions.emailNotificationTemplate,'utf8',function(err,contents){
 		if( err ) throw err;
 		emailTemplate = contents.toString();
 	});

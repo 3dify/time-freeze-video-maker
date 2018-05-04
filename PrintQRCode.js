@@ -1,9 +1,10 @@
 var Printer = require('thermalprinter');
 var qr = require('qr-image');
 var fs = require('fs');
-require('stringformat').extendString();
 var serialport = require('serialport');
 var yargs = require('yargs');
+
+require('string-format').extend(String.prototype,{});
 
 
 var resizeImage = function(size,data){
