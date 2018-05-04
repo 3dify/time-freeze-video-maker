@@ -11,9 +11,9 @@ module.exports = function(files,config){
 	var output = files.map(format).join('\n');
 	var numFirstFrames = Math.floor( ( config.video.firstFrameDuration || 0 ) * config.video.framerate );
 
-	var loops = config.video.loop || 1;
+	var repeat = config.video.repeat || 1;
 	var loopedOutput = output;
-	for( var i=1;i<loops;i++ ){
+	for( var i=1;i<repeat;i++ ){
 		loopedOutput+='\n'+output;
 	}
 
@@ -26,13 +26,11 @@ module.exports = function(files,config){
 
 	return {
 		header : function(image,frames){
-			format(image);
 			for( var i=0;i<frames;i++ ){
 				output=format(image)+'\n'+output;
 			}
 		},
 		footer : function(image,frames){
-			format(image);
 			for( var i=0;i<frames;i++ ){
 				output=output+'\n'+format(image);
 			}

@@ -15,6 +15,7 @@ var watcher = require('./watcher.js');
 var ImageSequence = require('./ImageSequence');
 var OAuthHelper = require('./OAuthHelper');
 var PrintQRCode = require('./PrintQRCode');
+var EmailNotifications = require('./EmailNotifications');
 
 module.exports = function(config){
 
@@ -36,6 +37,8 @@ module.exports = function(config){
 		accessToken:config.youTube.accessToken,
 		refreshToken:config.youTube.refreshToken
 	});
+
+	var emailer = new EmailNotifications(config);
 	
 	var watch = function(dir){
 		
@@ -57,8 +60,9 @@ module.exports = function(config){
 
 	var processDir = function(dir){
 		notice("processing "+dir);
-		
-		makeVideo(dir);
+		for(var vidConfig in config.video){
+			makeVideo(dir,vidConfig);
+		}
 
 	}
 
@@ -93,9 +97,9 @@ module.exports = function(config){
 		if( watchDir == parentDir ) return;
 
 
-		if( files.length >= config.video.numCameras && !fs.existsSync(generateVideoFileName(parentDir)) ){
+		if( files.length >= config.cameraOrder.length && !fs.existsSync(generateVideoFileName(parentDir)) ){
 			notice( "Enqueing dir for processing {0}".format(parentDir) );
-			queueVideo(parentDir);			
+			queueVideo(parentDir,videoConfig);			
 		}
 
 		if( !isProcessingVideo ) shiftQueue();
@@ -117,11 +121,13 @@ module.exports = function(config){
 		var next = tasks.shift();
 		tasks.flush();
 		if( next ){
-			makeVideo(next.parentDir);
+			for(var vidConfig in config.video){
+				makeVideo(next.parentDir,vidConfig);
+			}
 		}
 	}
 
-	var makeVideo = function(parentDir,files){
+	var makeVideo = function(parentDir,files,videoConfig){
 		parentDir	 = resolveDirectory(parentDir);
 
 		if( !files ){
@@ -143,11 +149,11 @@ module.exports = function(config){
 		//filePaths = stabilizeImages(filePaths);
 
 		imageSequence = ImageSequence(filePaths,config);
-		if( config.video.header && config.video.headerDuration ){ 
-			imageSequence.header( fs.realpathSync(config.video.header),Math.floor(config.video.headerDuration*config.video.framerate));
+		if( videoConfig.header && videoConfig.headerDuration ){ 
+			imageSequence.header( fs.realpathSync(videoConfig.header),Math.floor(videoConfig.headerDuration*videoConfig.framerate));
 		}
-		if( config.video.footer && config.video.footerDuration ){ 
-			imageSequence.footer( fs.realpathSync(config.video.footer),Math.floor(config.video.footerDuration*config.video.framerate));
+		if( videoConfig.footer && videoConfig.footerDuration ){ 
+			imageSequence.footer( fs.realpathSync(videoConfig.footer),Math.floor(videoConfig.footerDuration*videoConfig.framerate));
 		}
 
 		var sequenceFilename = imageSequence.save();
@@ -155,30 +161,41 @@ module.exports = function(config){
 
 		//ffmpeg -r $FPS -f concat -i $1 -r $FPS -vf crop=2048:1536 -vf scale=1024:768 $2
 		var ffmpegArgs = [
-			'-r', config.video.framerate,
+			'-r', videoConfig.framerate,
 			'-f', 'concat',
 			'-i', sequenceFilename,
-			'-r', config.video.framerate,
-			//'-vf', 'crop=2048:1536',
-			'-vf', 'scale='+config.video.width+":"+config.video.height,
-			'-c:v', 'libx264',
-			'-b:v', config.video.bitrate,
-			'-profile:v', 'high',
-			'-pix_fmt', 'yuv420p',
-			'-level', '4.0',
-			'-y',
-			outputFile
+			'-r', videoConfig.framerate 
 		];
-		var ffmpegCmd = config.video.ffmpegBinary;
+
+		if(videoConfig.crop instanceof Array){
+			ffmpegArgs.push('-vf', 'crop='+videoConfig.crop[0]+':'+videoConfig.crop[1]);		
+		}
+
+		ffmpegArgs.push(
+			'-vf', 'scale='+videoConfig.width+":"+videoConfig.height,
+			'-c:v', 'libx264',
+			'-b:v', videoConfig.bitrate
+		);
+
+		if(videoConfig.ffmpegExtraSettings instanceof Array){
+			ffmpegArgs.push.apply(ffmpegArgs,videoConfig.ffmpegExtraSettings);
+		}
+
+		ffmpegArgs.push('-y',outputFile);
+
+		var ffmpegCmd = config.ffmpegBinary;
 		child = child_process.spawnSync(ffmpegCmd,ffmpegArgs, { stdio : 'inherit'});
 
 
-		if(child.status>0){
+		if(child.status!=0){
 			process.exit(1);
 		}
 
-		if( uploadAutomatically ){
+		if( videoConfig.postCreateTask === 'youTube' ){
 			upload(outputFile);
+		}
+		else if( videoConfig.postCreateTask === 'email' ){
+			email(outputFile);
 		}
 		else {
 			isProcessingVideo = false;
@@ -201,6 +218,10 @@ module.exports = function(config){
 
 	var generateVideoFileName = function(dir){
 		return dir+".mp4"
+	}
+
+	var email = function(outputFile){
+
 	}
 
 	var onAuthComplete = function(outputFile){
