@@ -172,12 +172,7 @@ module.exports = function(config){
 			'-r', videoConfig.framerate,
 		];
 
-		if(videoConfig.crop instanceof Array){
-			ffmpegArgs.push('-vf', 'crop='+videoConfig.crop[0]+':'+videoConfig.crop[1]);		
-		}
-
 		ffmpegArgs.push(
-			'-vf', 'scale='+videoConfig.width+":"+videoConfig.height,
 			'-c:v', 'libx264',
 			'-b:v', videoConfig.bitrate
 		);

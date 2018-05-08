@@ -9,7 +9,7 @@ var VideoMaker = require('./VideoMaker');
 
 if( fs.existsSync(config.privateConfig) ){
 	var privateConfig = require(config.privateConfig);
-	config = util._extend(config,privateConfig);
+	config = Object.assign(config,privateConfig);
 }
 
 var cwd = process.cwd();
