@@ -5,6 +5,7 @@ var child_process = require('child_process');
 var lodash = require('lodash');
 var google = require('googleapis');
 var stringformat = require('string-format');
+var util = require('util');
 
 var colors = require('colors');
 var ObjectQ = require('objectq').ObjectQ;
@@ -15,6 +16,7 @@ var ImageSequence = require('./ImageSequence');
 var OAuthHelper = require('./OAuthHelper');
 var PrintQRCode = require('./PrintQRCode');
 var EmailNotifications = require('./EmailNotifications');
+var MetadataCollector = require('./MetadataCollector');
 
 stringformat.extend(String.prototype,{});
 
@@ -27,6 +29,8 @@ module.exports = function(config){
 	var tasks;
 	var currentId;
 	var currentDir;
+	var emailer;
+	var metadataCollector;
 	
 	OAuthHelper.options({
 		scope:['https://www.googleapis.com/auth/youtube',
@@ -39,8 +43,17 @@ module.exports = function(config){
 		refreshToken:config.youTube.refreshToken
 	});
 
-	var emailer = new EmailNotifications(config);
+
+	var init = function(){
+		if( config.video.some((vc)=>vc.postCreateTask=='email') ){
+			emailer = new EmailNotifications(config);
+			metadataCollector = new MetadataCollector(config);
+			//metadataCollector.on('saved', onMetadataSaved);
+		}
 	
+	}
+
+
 	var watch = function(dir){
 		
 		watchDir = dir = resolveDirectory(dir);
@@ -61,7 +74,12 @@ module.exports = function(config){
 
 	var processDir = function(dir){
 		notice("processing "+dir);
-		makeVideos(dir);
+		makeVideos(dir).then(function(){
+			if( metadataCollector ){
+				console.log("stopping metadata collector");
+				metadataCollector.stop();
+			}
+		});
 	}
 
 	var exitWithError = function(){
@@ -85,9 +103,9 @@ module.exports = function(config){
 	}
 
 	var upload = function(outputFile){
-		
-		OAuthHelper.authenticate( config, onAuthComplete.bind(null,outputFile) );
-			
+		return new Promise(function(resolve,reject){
+			OAuthHelper.authenticate( config, resolve )
+		}).then(onAuthComplete.bind(null,outputFile));			
 	}
 
 	var onDirChanged = function(parentDir, files){
@@ -97,13 +115,13 @@ module.exports = function(config){
 
 		if( files.length >= config.cameraOrder.length && !fs.existsSync(generateVideoFileName(parentDir)) ){
 			notice( "Enqueing dir for processing {0}".format(parentDir) );
-			queueVideo(parentDir,videoConfig);			
+			queueVideo(parentDir);			
 		}
 
 		if( !isProcessingVideo ) shiftQueue();
 	}
 
-	var queueVideo = function(parentDir,files){
+	var queueVideo = function(parentDir){
 		var notInQueue = tasks._queue.every(function(task){ return task.parentDir!=parentDir });
 		if( notInQueue ){
 			tasks.queue({parentDir:parentDir});
@@ -124,13 +142,19 @@ module.exports = function(config){
 	}
 
 	var makeVideos = function(parentDir){
-		config.video.forEach( makeVideo.bind(null,parentDir) );
+		return Promise.all( config.video.map( makeVideo.bind(null,parentDir) ) );
 	}
 
 	var makeVideo = function(parentDir,videoConfig){
 		console.log("videoConfig=");
 		console.info(videoConfig);
 		var files;
+		var completeCallback;
+		var onFail;
+		var promise = new Promise(function(res,rej){
+			completeCallback = res;
+			onFail  = rej;
+		});
 
 		parentDir = resolveDirectory(parentDir);
 
@@ -195,15 +219,26 @@ module.exports = function(config){
 		}
 
 		if( videoConfig.postCreateTask === 'youTube' ){
-			upload(outputFile);
+			console.log("post video task: youTube");	
+			upload(outputFile).then(completeCallback);
 		}
 		else if( videoConfig.postCreateTask === 'email' ){
-			email(outputFile);
+			console.log("post video task: email");	
+			metadataCollector.addDir(currentDir,{ outputFile:outputFile, dir:currentDir }).then(function(data){
+				var outputFile = data.outputFile;
+				var dir = data.dir;
+				
+				return email(outputFile, dir, data);
+			}).then(completeCallback);
 		}
 		else {
+			console.log("post video task: none");	
 			isProcessingVideo = false;
 			shiftQueue();
+			completeCallback();
 		}
+
+		return promise;
 	}
 
 	var stabilizeImages = function(orig){
@@ -223,13 +258,13 @@ module.exports = function(config){
 		return dir+".mp4"
 	}
 
-	var email = function(outputFile){
+	var email = function(outputFile, dir, data){
 		console.log("emailing");
-		emailer.sendEmail("ian@3dify.co.uk",{url:"http://test.com"},[{filename: "video.mp4",path:outputFile}]);
+		return emailer.sendEmail(data.email,{url:"http://test.com"},[{filename: outputFile,path:outputFile}]);
 	}
 
 	var onAuthComplete = function(outputFile){
-		uploadVideoFile(outputFile);
+		return uploadVideoFile(outputFile);
 	}
 
 	var uploadVideoFile = function(outputFile){
@@ -258,22 +293,35 @@ module.exports = function(config){
 		if( config.youTubeOptions.tags ) videoData.resource.snippet.tags = config.youTubeOptions.tags;
 		if( config.youTubeOptions.description ) videoData.resource.snippet.description = config.youTubeOptions.description.format(data);
 
-		youtube.videos.insert(videoData, onUploadComplete);
+		youTubeInsert = util.promisify( youtube.videos.insert );
+
+		return youTubeInsert(videoData).catch(function(err){
+			console.error("youTube upload failed".red);
+			console.error(err);
+		}).then(onUploadComplete, function(err){
+			console.error("youTube upload rejected".yellow);
+			console.error(err);
+		});
 	}
 
-	var onUploadComplete = function(err,videoData){
-		if(err){
-			warning(err);
-		}
-		else {
-			var videoUrl = config.youTubeOptions.shortUrl.format(videoData.id);
-			console.log('video uploaded '+videoUrl);
-			config.serialPrinter.footerText = [currentId,"http://3dify.co.uk/"];
-
-			if( currentDir ) fs.writeFileSync(path.join(currentDir,currentId+".txt"),videoUrl);
-			PrintQRCode.printUrl(videoUrl,config.serialPrinter, onPrintingComplete);
-		}
-
+	var onUploadComplete = function(videoData){
+		return new Promise(function(resolve,reject){
+			console.log("upload complete");
+			//console.log(videoData);
+			//console.log(err);
+			/*if(err){
+				warning(err);
+				reject(err);
+			}
+			else */{
+				var videoUrl = config.youTubeOptions.shortUrl.format(videoData.id);
+				console.log('video uploaded '+videoUrl);
+				config.serialPrinter.footerText = [currentId,"http://3dify.co.uk/"];
+	
+				if( currentDir ) fs.writeFile(path.join(currentDir,currentId+".txt"),videoUrl,(err)=>{});
+				PrintQRCode.printUrl(videoUrl,config.serialPrinter, resolve);
+			}
+		}).then(onPrintingComplete);
 	}
 
 	var onPrintingComplete = function(err){
@@ -329,6 +377,8 @@ module.exports = function(config){
 		warning : warning,
 		notice : notice
 	}
+
+	init();
 
 	return exports;
 }

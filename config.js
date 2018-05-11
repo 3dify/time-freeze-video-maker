@@ -22,6 +22,7 @@ module.exports = {
 				'-level', '4.0'				
 			]
 		},
+		
 		{
 			'outputFileSuffix':'-attachment',			
 			'postCreateTask':'email',
@@ -57,6 +58,9 @@ module.exports = {
 		emailNotificationTemplate: 'html/email-template.html',
 		emailNotificationSubject: 'test video email'
 	},
+	'metadata':'metadata.js',
+	'webroot':'www-app',
+	'port':8000,
 	'basedir':__dirname,
 	'processed':'processed.txt',
 	'queueAutoSavePeriod':20000,

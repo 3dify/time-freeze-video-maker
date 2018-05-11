@@ -1,5 +1,4 @@
 var fs = require('fs');
-
 var nodemailer = require('nodemailer');
 var htmlToText = require('nodemailer-html-to-text').htmlToText;
 
@@ -33,22 +32,27 @@ module.exports = function(config){
 	});
 
 	exports.sendEmail = function( address, data, attachments ){
-		var options = {
-			from: config.email.from,
-			to: address,
-			subject: config.emailOptions.emailNotificationSubject.format(data),
-			html: emailTemplate.format(data),
-			attachments: attachments
-		}
-
-		transporter.sendMail(options,function(error,info){
-			if(error){
-				console.error(error);
+		return new Promise(function(res,rej){
+			var options = {
+				from: config.email.from,
+				to: address,
+				subject: config.emailOptions.emailNotificationSubject.format(data),
+				html: emailTemplate.format(data),
+				attachments: attachments
 			}
-			if( info ){
-				console.log(info.response);				
-			}
+	
+			transporter.sendMail(options,function(error,info){
+				if(error){
+					console.error(error);
+					rej(error)
+				}
+				if( info ){
+					console.log(info.response);				
+					res(info.response);
+				}
+			});
 		});
+		
 	}
 
 

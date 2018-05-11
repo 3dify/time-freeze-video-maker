@@ -1,0 +1,192 @@
+body {
+	padding:0;
+	margin:0;
+	font-family: helvetica, arial;
+}
+.container {	
+	width:600px;
+	margin:0 auto;
+	box-sizing: border-box;
+	padding:0 10px;
+}
+
+#personalinfo {
+	box-sizing: border-box;
+    margin: 0 10px;
+}
+
+#personalinfo input, #personalinfo button, #personalinfo textarea {
+	font-size:3em;
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;         /* Opera/IE 8+ */
+	margin:10px 0;
+	border-radius: 10px;
+	border-color: #000;
+	border-width: 1px;
+	border-style: solid;
+	padding:10px 0;
+}
+
+#personalinfo button {
+  height:100px;
+  width:100%;
+}
+
+input, textarea {
+	width:100%;
+
+}
+
+button {
+  color: #fff;
+  text-shadow: -2px 2px #346392;
+  background-color: #ff9664;
+  background-image: linear-gradient(180deg, #6496c8, #346392);
+  box-shadow: inset 0 0 0 1px #27496d;
+  border: none;
+  border-radius: 15px;
+}
+
+button[disabled] {
+	color: #ddd;
+	background-image: linear-gradient(180deg, #a6a6a6, #737373);
+	text-shadow: -2px 2px #636363;
+}
+
+button:hover,
+button.hover {
+  box-shadow: inset 0 0 0 1px #27496d,0 5px 15px #193047;
+}
+
+button:active,
+button.active {
+  box-shadow: inset 0 0 0 1px #27496d,inset 0 5px 30px #193047;
+}
+
+button:focus {
+	outline: none;
+}
+
+#personalinfo input.iconed , #personalinfo textarea.iconed {
+
+	background-position: 5px 50%;
+	background-size: auto 75px;
+	background-repeat: no-repeat;
+	padding-left:100px;
+	
+}
+
+input#scan-name {
+	background-image: url('/img/picture.png');
+}
+
+input#twitter {
+	background-image: url('/img/twitter.png');
+}
+
+input#email {
+	background-image: url('/img/email.png');
+}
+
+input#phone {
+	background-image: url('/img/phone.png');
+}
+
+input#name {
+	background-image: url('/img/user.png');	
+}
+
+textarea#description {
+	background-image: url('/img/note.png');	
+}
+
+#reald-button, #vue-button {
+	font-size: 2em;
+	color: #66CCFF;
+	text-decoration: none;
+}
+
+#reald-button:visited, #vue-button:visited {
+	color: #66CCFF;
+}
+
+
+div#index, .privacy-policy {
+	position:fixed;
+	display:block;
+	width:100%;
+	height:100%;
+	top:0;
+	left:0;
+	z-index:100;
+	background-color: #FFF;
+	margin:0;
+	padding:0;
+	border-bottom: solid 10px #888;
+	overflow: scroll;
+}
+
+.index-entry {
+	position:relative;
+	display:block;
+	height:40px;
+	width:100%;
+	margin:10px 0;
+}
+
+.index-entry .edit {
+	position: absolute;
+	display:block;
+	top:0;
+	right:0;
+	width:200px;
+	height:40px;
+	text-align: right;
+}
+
+index-entry .dir {
+	font-size: 2em;
+}
+
+.index-entry {
+    font-size: 2em;	
+}
+
+.index-entry .edit-button {
+    font-size: 22px;	
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.index-entry .scan-name {
+    width: 100%;
+    display: block;
+    position: absolute;
+    text-align: center;
+    top: 0;
+}
+
+
+.index-entry .edit button {
+	width:100px;
+	height:100%;
+}
+
+.privacy-policy {
+	padding:0px 20px;
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box; 
+}
+
+.privacy-policy button {
+	font-size: 22px;
+	float:right;
+	margin:25px 5px;
+	padding:10px 20px;
+}
+
+
+
